@@ -1,0 +1,93 @@
+group = "ru.alxndrzuev"
+
+buildscript {
+    ext {
+        springBootVersion = '1.5.10.RELEASE'
+    }
+    repositories {
+        jcenter()
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+        classpath 'com.netflix.nebula:nebula-release-plugin:6.3.0'
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'groovy'
+apply plugin: 'org.springframework.boot'
+apply plugin: 'nebula.release'
+
+repositories {
+    mavenCentral()
+}
+
+dependencyManagement {
+    imports {
+        mavenBom 'org.springframework.cloud:spring-cloud-dependencies:Edgware.RELEASE'
+    }
+}
+
+dependencies {
+    compile group: 'org.springframework.boot', name: 'spring-boot-starter-web'
+    compile group: 'org.springframework.boot', name: 'spring-boot-starter-actuator'
+    compile group: 'com.vaadin', name: 'vaadin-spring-boot-starter', version: '3.0.0'
+
+    compile group: 'javax.validation', name: 'validation-api', version: '2.0.1.Final'
+    compile group: 'org.projectlombok', name: 'lombok', version: '1.16.20'
+    compile group: 'org.codehaus.groovy', name: 'groovy-all', version: '2.4.13'
+    compile group: 'net.logstash.logback', name: 'logstash-logback-encoder', version: '4.11'
+    compile group: 'com.google.guava', name: 'guava', version: '24.0-jre'
+    compile group: 'org.apache.commons', name: 'commons-math3', version: '3.6.1'
+    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.7'
+}
+
+sourceSets {
+    main {
+        groovy {
+            srcDirs=['src/main/java']
+        }
+        java {
+            srcDirs=[]
+        }
+        resources{
+            srcDirs 'src/main/resources'
+            srcDirs 'src/main/webapp'
+        }
+    }
+}
+
+task dockerPush << {
+    exec {commandLine 'mkdir','-p','build/docker'}
+
+    exec {
+        commandLine 'echo', "\
+        FROM registry.hub.docker.com/anapsix/alpine-java:8\n\
+MAINTAINER alxndrzuev\n\
+COPY build/libs/${project.name}-${project.version}.jar /application/\n\
+EXPOSE 8080\n\
+WORKDIR /application\n\
+ENTRYPOINT java -jar ${project.name}-${project.version}.jar"
+        standardOutput = new FileOutputStream("build/docker/Dockerfile")
+    }
+
+    exec {
+        commandLine 'docker', 'build','.', \
+            '-f','build/docker/Dockerfile',\
+            '--force-rm=true',\
+            "--tag=alxndrzuev/${project.name}:${project.version}"
+    }
+
+    exec {
+        println("username=${project.'docker.username'}")
+        println("password=${project.'docker.password'}")
+        commandLine 'docker', 'login', "--username=${project.'docker.username'}", "--password=${project.'docker.password'}"
+    }
+
+    exec {
+        commandLine 'docker', 'push', "alxndrzuev/${project.name}:${project.version}"
+    }
+}
+
+dockerPush.dependsOn build
