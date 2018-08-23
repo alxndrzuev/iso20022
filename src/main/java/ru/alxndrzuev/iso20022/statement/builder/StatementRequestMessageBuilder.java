@@ -45,6 +45,7 @@ public class StatementRequestMessageBuilder {
     @SneakyThrows
     public String buildRequest(StatementRequestMessage request) {
         Marshaller marshaller = jaxbContext.createMarshaller();
+        marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
         StringWriter sw = new StringWriter();
         marshaller.marshal(convertRequest(request), sw);
         return sw.toString();

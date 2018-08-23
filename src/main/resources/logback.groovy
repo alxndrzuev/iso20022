@@ -37,4 +37,4 @@ appender("ROLLING", RollingFileAppender) {
 }
 appenderList << "ROLLING"
 
-root(Level.DEBUG, appenderList)
+root(Level.INFO, appenderList)

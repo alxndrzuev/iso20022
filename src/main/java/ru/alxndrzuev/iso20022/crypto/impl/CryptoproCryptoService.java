@@ -1,5 +1,6 @@
 package ru.alxndrzuev.iso20022.crypto.impl;
 
+import com.google.common.collect.Lists;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.xml.security.signature.XMLSignature;
@@ -10,6 +11,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import ru.CryptoPro.JCPxml.xmldsig.JCPXMLDSigInit;
 import ru.alxndrzuev.iso20022.crypto.CryptoService;
+import ru.alxndrzuev.iso20022.utils.CertificateUtils;
 
 import javax.annotation.PostConstruct;
 import javax.xml.parsers.DocumentBuilder;
@@ -23,9 +25,13 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
 import java.io.ByteArrayOutputStream;
 import java.io.StringReader;
+import java.security.Key;
 import java.security.KeyStore;
 import java.security.PrivateKey;
+import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
+import java.util.Enumeration;
+import java.util.List;
 
 @Service
 @Slf4j
@@ -82,6 +88,29 @@ public class CryptoproCryptoService implements CryptoService {
         trans.transform(new DOMSource(doc), new StreamResult(baos));
 
         return new String(baos.toByteArray());
+    }
+
+    @Override
+    @SneakyThrows
+    public List<ru.alxndrzuev.iso20022.model.Certificate> getAvailableCertificates() {
+        List<ru.alxndrzuev.iso20022.model.Certificate> certificates = Lists.newArrayList();
+        Enumeration<String> aliases = ks.aliases();
+        while (aliases.hasMoreElements()) {
+            try {
+                String alias = aliases.nextElement();
+                Certificate certificate = ks.getCertificate(alias);
+                Key key = ks.getKey(alias, null);
+                if (certificate != null && key != null) {
+                    ru.alxndrzuev.iso20022.model.Certificate cert = CertificateUtils.parseCertificate(certificate.getEncoded());
+                    cert.setId(alias);
+                    certificates.add(cert);
+                }
+            } catch (Exception e) {
+                log.warn("Can not get certificates. Exception:", e.getCause());
+            }
+        }
+
+        return certificates;
     }
 
 
