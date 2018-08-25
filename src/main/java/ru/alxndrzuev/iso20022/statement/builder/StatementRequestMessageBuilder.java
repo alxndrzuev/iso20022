@@ -1,7 +1,6 @@
 package ru.alxndrzuev.iso20022.statement.builder;
 
 
-import iso20022.SngtrSt;
 import iso20022.statement.AccountIdentification4Choice;
 import iso20022.statement.AccountReportingRequestV03;
 import iso20022.statement.CashAccount24;
@@ -38,7 +37,7 @@ public class StatementRequestMessageBuilder {
     @PostConstruct
     @SneakyThrows
     public void init() {
-        jaxbContext = JAXBContext.newInstance("iso20022.statement:iso20022");
+        jaxbContext = JAXBContext.newInstance("iso20022.statement");
     }
 
 
@@ -83,7 +82,6 @@ public class StatementRequestMessageBuilder {
         }
         SupplementaryData1 supplementaryData = new SupplementaryData1();
         supplementaryData.setEnvlp(new SupplementaryDataEnvelope1());
-        supplementaryData.getEnvlp().setAny(new SngtrSt());
 
         document.getAcctRptgReq().getSplmtryData().add(supplementaryData);
 

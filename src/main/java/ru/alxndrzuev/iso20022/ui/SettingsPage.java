@@ -5,6 +5,7 @@ import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.notification.Notification;
@@ -15,6 +16,7 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import ru.alxndrzuev.iso20022.configuration.properties.ApplicationProperties;
 import ru.alxndrzuev.iso20022.crypto.CryptoService;
 import ru.alxndrzuev.iso20022.model.Certificate;
 import ru.alxndrzuev.iso20022.model.Dialect;
@@ -35,6 +37,9 @@ public class SettingsPage extends BasePage {
     @Autowired
     private PropertiesPersister propertiesPersister;
 
+    @Autowired
+    private ApplicationProperties applicationProperties;
+
     private TextField loginTextField;
     private PasswordField passwordTextField;
     private ComboBox<Certificate> firstCerificateComboBox;
@@ -45,8 +50,11 @@ public class SettingsPage extends BasePage {
     private Button save;
 
     public SettingsPage() {
+        setSizeFull();
+
         main.removeAll();
         main.setPadding(true);
+        main.getStyle().set("padding-bottom", "0px");
 
         VerticalLayout vl = new VerticalLayout();
         vl.getStyle().set("overflow", "auto");
@@ -57,12 +65,16 @@ public class SettingsPage extends BasePage {
         vl.add(buildNetworkLayout());
         vl.add(buildCommonLayout());
         main.add(vl);
-        main.add(buildFooterLayout());
+        VerticalLayout fl = buildFooterLayout();
+        main.add(fl);
+        main.expand(fl);
     }
 
-    private VerticalLayout buildSecurityLayout() {
-        VerticalLayout securityLayout = new VerticalLayout();
+    private Div buildSecurityLayout() {
+        Div securityLayout = new Div();
+        securityLayout.getStyle().set("width", "calc(100% - 20px)");
         securityLayout.getStyle().set("background-color", "var(--lumo-shade-5pct)");
+        securityLayout.getStyle().set("padding", "10px");
         Label label = new Label("Signatures");
         label.getStyle().set("font-size", "var(--lumo-font-size-xxxl)");
         securityLayout.add(label);
@@ -78,9 +90,11 @@ public class SettingsPage extends BasePage {
         return securityLayout;
     }
 
-    private VerticalLayout buildNetworkLayout() {
-        VerticalLayout networkLayout = new VerticalLayout();
+    private Div buildNetworkLayout() {
+        Div networkLayout = new Div();
+        networkLayout.getStyle().set("width", "calc(100% - 20px)");
         networkLayout.getStyle().set("background-color", "var(--lumo-shade-5pct)");
+        networkLayout.getStyle().set("padding", "10px");
         Span text = new Span("Network");
         text.getStyle().set("font-size", "var(--lumo-font-size-xxxl)");
         networkLayout.add(text);
@@ -95,9 +109,11 @@ public class SettingsPage extends BasePage {
         return networkLayout;
     }
 
-    private VerticalLayout buildCommonLayout() {
-        VerticalLayout commonLayout = new VerticalLayout();
+    private Div buildCommonLayout() {
+        Div commonLayout = new Div();
+        commonLayout.getStyle().set("width", "calc(100% - 20px)");
         commonLayout.getStyle().set("background-color", "var(--lumo-shade-5pct)");
+        commonLayout.getStyle().set("padding", "10px");
         Span text = new Span("Common");
         text.getStyle().set("font-size", "var(--lumo-font-size-xxxl)");
         commonLayout.add(text);
@@ -127,25 +143,22 @@ public class SettingsPage extends BasePage {
         firstCerificateComboBox.setItems(certificates);
         secondCerificateComboBox.setItems(certificates);
 
-        Properties props = propertiesPersister.load();
-        if (props.getProperty("login") != null) {
-            loginTextField.setValue(props.getProperty("login"));
+        if (applicationProperties.getLogin() != null) {
+            loginTextField.setValue(applicationProperties.getLogin());
         }
-        if (props.getProperty("password") != null) {
-            passwordTextField.setValue(props.getProperty("password"));
+        if (applicationProperties.getPassword() != null) {
+            passwordTextField.setValue(applicationProperties.getPassword());
         }
-        if (props.getProperty("base_url") != null) {
-            baseUrlTextField.setValue(props.getProperty("base_url"));
+        if (applicationProperties.getBaseUrl() != null) {
+            baseUrlTextField.setValue(applicationProperties.getBaseUrl());
         }
-        if (props.getProperty("dialect") != null) {
-            dialectComboBox.setValue(Dialect.valueOf(props.getProperty("dialect")));
-        }
+        dialectComboBox.setValue(applicationProperties.getDialect());
         firstCerificateComboBox.setValue(certificates.stream()
-                .filter(certificate -> certificate.getId().equals(props.getProperty("first_certificate_alias")))
+                .filter(certificate -> certificate.getId().equals(applicationProperties.getFirstCertificateAlias()))
                 .findFirst()
                 .orElse(null));
         secondCerificateComboBox.setValue(certificates.stream()
-                .filter(certificate -> certificate.getId().equals(props.getProperty("second_certificate_alias")))
+                .filter(certificate -> certificate.getId().equals(applicationProperties.getSecondCertificateAlias()))
                 .findFirst()
                 .orElse(null));
 
@@ -153,21 +166,21 @@ public class SettingsPage extends BasePage {
             try {
                 Properties properties = new Properties();
                 if (firstCerificateComboBox.getValue() != null) {
-                    properties.setProperty("first_certificate_alias", firstCerificateComboBox.getValue().getId());
+                    properties.setProperty(PropertiesPersister.FIRST_CERTIFICATE_ALIAS_PROPERTY, firstCerificateComboBox.getValue().getId());
                 }
                 if (secondCerificateComboBox.getValue() != null) {
-                    properties.setProperty("second_certificate_alias", secondCerificateComboBox.getValue().getId());
+                    properties.setProperty(PropertiesPersister.SECOND_CERTIFICATE_ALIAS_PROPERTY, secondCerificateComboBox.getValue().getId());
                 }
-                properties.setProperty("login", loginTextField.getValue());
-                properties.setProperty("password", passwordTextField.getValue());
-                properties.setProperty("base_url", baseUrlTextField.getValue());
+                properties.setProperty(PropertiesPersister.LOGIN_PROPERTY, loginTextField.getValue());
+                properties.setProperty(PropertiesPersister.PASSWORD_PROPERTY, passwordTextField.getValue());
+                properties.setProperty(PropertiesPersister.BASE_URL_PROPERTY, baseUrlTextField.getValue());
                 if (dialectComboBox.getValue() != null) {
-                    properties.setProperty("dialect", dialectComboBox.getValue().name());
+                    properties.setProperty(PropertiesPersister.DIALECT_PROPERTY, dialectComboBox.getValue().name());
                 }
                 propertiesPersister.persist(properties);
-                Notification.show("Configurations successfully saved", 5000, Notification.Position.MIDDLE);
+                Notification.show("Configurations successfully saved", 3000, Notification.Position.TOP_END);
             } catch (Exception e) {
-                Notification.show("Could not save configuration", 5000, Notification.Position.MIDDLE);
+                Notification.show("Could not save configuration", 3000, Notification.Position.TOP_END);
             }
         });
     }

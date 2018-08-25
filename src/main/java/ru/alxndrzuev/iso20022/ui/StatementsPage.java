@@ -18,8 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import ru.alxndrzuev.iso20022.crypto.CryptoService;
-import ru.alxndrzuev.iso20022.gateways.ab.ABGateway;
-import ru.alxndrzuev.iso20022.gateways.ab.ResponseException;
+import ru.alxndrzuev.iso20022.gateways.ab.AbTestGateway;
 import ru.alxndrzuev.iso20022.statement.builder.StatementRequestMessageBuilder;
 import ru.alxndrzuev.iso20022.statement.model.StatementRequest;
 import ru.alxndrzuev.iso20022.statement.model.StatementRequestMessage;
@@ -41,7 +40,7 @@ public class StatementsPage extends BasePage {
     private CryptoService cryptoService;
 
     @Autowired
-    private ABGateway gateway;
+    private AbTestGateway gateway;
 
     @Autowired
     private XmlFormatter xmlFormatter;
@@ -67,32 +66,34 @@ public class StatementsPage extends BasePage {
         fieldLayout.add(formLayout);
 
         messageIdTextField = new TextField();
-        messageIdTextField.setWidth("40");
-        messageIdTextField.setValue(UUID.randomUUID().toString().substring(1));
+        messageIdTextField.setValue(UUID.randomUUID().toString().substring(10));
+        messageIdTextField.setSizeFull();
         requestIdTextField = new TextField();
-        requestIdTextField.setWidth("40");
         requestIdTextField.setValue("1");
+        requestIdTextField.setSizeFull();
         accountTextField = new TextField();
-        accountTextField.setWidth("40");
+        accountTextField.setSizeFull();
         organizationNameTextField = new TextField();
-        organizationNameTextField.setWidth("40");
+        organizationNameTextField.setSizeFull();
         dateFromDatePicker = new DatePicker();
+        dateFromDatePicker.setSizeFull();
         dateToDatePicker = new DatePicker();
+        dateToDatePicker.setSizeFull();
 
-        formLayout.addFormItem(messageIdTextField, "Id сообщения");
-        formLayout.addFormItem(requestIdTextField, "Id запроса");
-        formLayout.addFormItem(accountTextField, "Номер счета");
-        formLayout.addFormItem(organizationNameTextField, "Название организации");
-        formLayout.addFormItem(dateFromDatePicker, "С");
-        formLayout.addFormItem(dateToDatePicker, "По");
+        formLayout.addFormItem(messageIdTextField, "Message id");
+        formLayout.addFormItem(requestIdTextField, "Request id");
+        formLayout.addFormItem(accountTextField, "Account");
+        formLayout.addFormItem(organizationNameTextField, "Organization name");
+        formLayout.addFormItem(dateFromDatePicker, "From");
+        formLayout.addFormItem(dateToDatePicker, "To");
 
-        generateRequest = new Button("Сгенерировать запрос");
-        signRequest = new Button("Подписать запрос");
-        sendRequest = new Button("Отправить запрос");
+        generateRequest = new Button("Generate request");
+        signRequest = new Button("Sign request");
+        sendRequest = new Button("Send request");
         HorizontalLayout buttonsLayout = new HorizontalLayout(generateRequest, signRequest, sendRequest);
         fieldLayout.add(buttonsLayout);
 
-        Tab statementTab = new Tab("Выписка");
+        Tab statementTab = new Tab("Statement");
         statementTextArea = new TextArea();
         statementTextArea.setReadOnly(true);
         statementTextArea.setWidth("100%");
@@ -132,9 +133,9 @@ public class StatementsPage extends BasePage {
             try {
                 ResponseEntity responseEntity = gateway.getStatement(requestString);
                 responseTextArea.setValue(generateResultt(responseEntity.getStatusCode().value(), responseEntity.getHeaders().entrySet(), responseEntity.getBody() != null ? responseEntity.getBody().toString() : null));
-                new Thread(() -> updateStatementResult(requestMessage.getMessageId(), getUI().get())).start();
-            } catch (ResponseException responseException) {
-                responseTextArea.setValue(generateResult(responseException.getResponse().status(), responseException.getResponse().headers().entrySet(), responseException.getResponseBody()));
+                if (HttpStatus.OK.equals(responseEntity.getStatusCode())) {
+                    new Thread(() -> updateStatementResult(requestMessage.getMessageId(), getUI().get())).start();
+                }
             } catch (Exception e) {
                 log.error("Exception:", e);
             }
@@ -156,11 +157,6 @@ public class StatementsPage extends BasePage {
                         statementTextArea.setValue(generateResultt(responseEntity.getStatusCode().value(), responseEntity.getHeaders().entrySet(), responseEntity.getBody().toString()));
                     });
                 }
-            } catch (ResponseException responseException) {
-                ui.access(() -> {
-                    statementTextArea.setValue(generateResult(responseException.getResponse().status(), responseException.getResponse().headers().entrySet(), responseException.getResponseBody()));
-                });
-                break;
             } catch (Exception e) {
                 log.error("Exception:", e);
             }

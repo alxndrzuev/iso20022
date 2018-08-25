@@ -87,13 +87,14 @@ public abstract class BasePage extends HorizontalLayout {
 
     private VerticalLayout buildMenu() {
         menu = new VerticalLayout();
-        menu.setWidth("300px");
+        menu.getStyle().set("position", "fixed");
+        menu.getStyle().set("width", "300px");
         menu.setSpacing(false);
         menu.setMargin(false);
         menu.setPadding(false);
-        menu.add(buildMenuButton("Выписка", "statements"));
-        menu.add(buildMenuButton("Платежи", "payments"));
-        menu.add(buildMenuButton("Настройки", "settings"));
+        menu.add(buildMenuButton("Statements", "statements"));
+        menu.add(buildMenuButton("Payments", "payments"));
+        menu.add(buildMenuButton("Settings", "settings"));
         return menu;
     }
 
@@ -102,17 +103,19 @@ public abstract class BasePage extends HorizontalLayout {
         main.setMargin(false);
         main.setPadding(false);
         main.setSpacing(false);
+        main.getStyle().set("width", "calc(100% - 300px)");
+        main.getStyle().set("margin-left", "300px");
         add(menu, main);
 
         fieldLayout = new VerticalLayout();
         main.add(fieldLayout);
 
-        Tab requestTab = new Tab("Запрос");
+        Tab requestTab = new Tab("Request");
         requestTextArea = new TextArea();
         requestTextArea.setReadOnly(true);
         requestTextArea.setWidth("100%");
         requestTextArea.setValue("");
-        Tab responseTab = new Tab("Ответ");
+        Tab responseTab = new Tab("Response");
         responseTextArea = new TextArea();
         responseTextArea.setReadOnly(true);
         responseTextArea.setWidth("100%");
