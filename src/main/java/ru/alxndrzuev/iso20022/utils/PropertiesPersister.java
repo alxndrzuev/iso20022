@@ -1,7 +1,9 @@
 package ru.alxndrzuev.iso20022.utils;
 
+import com.google.common.collect.Lists;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.MutablePropertySources;
 import org.springframework.core.env.PropertiesPropertySource;
@@ -22,8 +24,7 @@ import java.util.Properties;
 @Slf4j
 public class PropertiesPersister {
     public static final String BASE_URL_PROPERTY = "base_url";
-    public static final String FIRST_CERTIFICATE_ALIAS_PROPERTY = "first_certificate_alias";
-    public static final String SECOND_CERTIFICATE_ALIAS_PROPERTY = "second_certificate_alias";
+    public static final String CERTIFICATE_ALIASES_PROPERTY = "certificate_aliases";
     public static final String LOGIN_PROPERTY = "login";
     public static final String PASSWORD_PROPERTY = "password";
     public static final String DIALECT_PROPERTY = "dialect";
@@ -40,12 +41,17 @@ public class PropertiesPersister {
     public void persist(Properties properties) {
         Path path = Paths.get("config/app.properties");
         if (!Files.exists(path)) {
+            Files.createDirectories(path.getParent());
             Files.createFile(path);
         }
         persister.store(properties, new FileOutputStream(path.toFile()), "Configuration for iso20022 application");
 
         MutablePropertySources propertySources = environment.getPropertySources();
-        propertySources.replace("URL [file:config/app.properties]", new PropertiesPropertySource("URL [file:config/app.properties]", properties));
+        if (propertySources.get("URL [file:config/app.properties]") != null) {
+            propertySources.replace("URL [file:config/app.properties]", new PropertiesPropertySource("URL [file:config/app.properties]", properties));
+        } else {
+            propertySources.addLast(new PropertiesPropertySource("URL [file:config/app.properties]", properties));
+        }
         update();
     }
 
@@ -54,8 +60,9 @@ public class PropertiesPersister {
         PropertySource ps = propertySources.get("URL [file:config/app.properties]");
         Properties properties = (Properties) ps.getSource();
         applicationProperties.setBaseUrl(properties.getProperty(BASE_URL_PROPERTY));
-        applicationProperties.setFirstCertificateAlias(properties.getProperty(FIRST_CERTIFICATE_ALIAS_PROPERTY));
-        applicationProperties.setSecondCertificateAlias(properties.getProperty(SECOND_CERTIFICATE_ALIAS_PROPERTY));
+        if (StringUtils.isNotBlank(properties.getProperty(CERTIFICATE_ALIASES_PROPERTY))) {
+            applicationProperties.setCertificateAliases(Lists.newArrayList(properties.getProperty(CERTIFICATE_ALIASES_PROPERTY).split(",")));
+        }
         applicationProperties.setLogin(properties.getProperty(LOGIN_PROPERTY));
         applicationProperties.setPassword(properties.getProperty(PASSWORD_PROPERTY));
         if (properties.getProperty(DIALECT_PROPERTY) != null) {

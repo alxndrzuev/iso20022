@@ -3,7 +3,6 @@ package ru.alxndrzuev.iso20022.crypto.impl;
 import com.google.common.collect.Lists;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.xml.security.signature.XMLSignature;
 import org.apache.xml.security.transforms.Transforms;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +14,7 @@ import org.xml.sax.InputSource;
 import ru.CryptoPro.JCPxml.xmldsig.JCPXMLDSigInit;
 import ru.alxndrzuev.iso20022.configuration.properties.ApplicationProperties;
 import ru.alxndrzuev.iso20022.crypto.CryptoService;
+import ru.alxndrzuev.iso20022.crypto.SignatureAlgorithm;
 import ru.alxndrzuev.iso20022.utils.CertificateUtils;
 
 import javax.annotation.PostConstruct;
@@ -40,9 +40,6 @@ import java.util.List;
 @Service
 @Slf4j
 public class CryptoproCryptoService implements CryptoService {
-    final private String signMethod = "urn:ietf:params:xml:ns:cpxmlsec:algorithms:gostr34102012-gostr34112012-256";
-    final private String digestMethod = "urn:ietf:params:xml:ns:cpxmlsec:algorithms:gostr34112012-256";
-
     private KeyStore ks;
 
     @Autowired
@@ -68,12 +65,8 @@ public class CryptoproCryptoService implements CryptoService {
         final DocumentBuilder documentBuilder = dbf.newDocumentBuilder();
         final Document doc = documentBuilder.parse(new InputSource(new StringReader(request)));
 
-        if (StringUtils.isNotBlank(applicationProperties.getFirstCertificateAlias())) {
-            sign(applicationProperties.getFirstCertificateAlias(), doc);
-        }
-
-        if (StringUtils.isNotBlank(applicationProperties.getSecondCertificateAlias())) {
-            sign(applicationProperties.getSecondCertificateAlias(), doc);
+        for (String certificateAlias : applicationProperties.getCertificateAliases()) {
+            sign(certificateAlias, doc);
         }
 
         final ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -86,15 +79,20 @@ public class CryptoproCryptoService implements CryptoService {
 
     @SneakyThrows
     private void sign(String alias, Document doc) {
-        PrivateKey privateKey = (PrivateKey) ks.getKey(applicationProperties.getFirstCertificateAlias(), null);
-        X509Certificate cert = (X509Certificate) ks.getCertificate(applicationProperties.getFirstCertificateAlias());
+        PrivateKey privateKey = (PrivateKey) ks.getKey(alias, null);
+        X509Certificate cert = (X509Certificate) ks.getCertificate(alias);
 
         sign(privateKey, cert, doc);
     }
 
     @SneakyThrows
     private void sign(PrivateKey privateKey, X509Certificate cert, Document doc) {
-        final XMLSignature sig = new XMLSignature(doc, "", signMethod);
+        log.info("___________" + privateKey.getAlgorithm());
+        SignatureAlgorithm signatureAlgorithm = SignatureAlgorithm.getSignatureAlgorithmByKey(privateKey.getAlgorithm());
+        if (signatureAlgorithm == null) {
+            throw new RuntimeException("Unsupported key type " + privateKey.getAlgorithm());
+        }
+        final XMLSignature sig = new XMLSignature(doc, "", signatureAlgorithm.getSignatureMethod());
         XPath xpath = XPathFactory.newInstance().newXPath();
         NodeList link = (NodeList) xpath.evaluate("/*[local-name()='Document' and namespace-uri()='urn:iso:std:iso:20022:tech:xsd:camt.060.001.03']" +
                         "/*[local-name()='AcctRptgReq' and namespace-uri()='urn:iso:std:iso:20022:tech:xsd:camt.060.001.03']" +
@@ -109,7 +107,7 @@ public class CryptoproCryptoService implements CryptoService {
         transforms.addTransform(Transforms.TRANSFORM_ENVELOPED_SIGNATURE);
         transforms.addTransform(Transforms.TRANSFORM_C14N_WITH_COMMENTS);
 
-        sig.addDocument("", transforms, digestMethod);
+        sig.addDocument("", transforms, signatureAlgorithm.getDigestMethod());
         sig.addKeyInfo(cert);
         sig.sign(privateKey);
     }

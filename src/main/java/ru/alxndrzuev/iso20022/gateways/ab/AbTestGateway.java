@@ -15,7 +15,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
 import ru.alxndrzuev.iso20022.configuration.properties.ApplicationProperties;
@@ -24,7 +23,6 @@ import javax.annotation.PostConstruct;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
-import java.io.IOException;
 import java.security.cert.X509Certificate;
 
 @Service
@@ -40,12 +38,12 @@ public class AbTestGateway {
     public void init() {
         restTemplate.setErrorHandler(new ResponseErrorHandler() {
             @Override
-            public boolean hasError(ClientHttpResponse response) throws IOException {
+            public boolean hasError(ClientHttpResponse response) {
                 return false;
             }
 
             @Override
-            public void handleError(ClientHttpResponse response) throws IOException {
+            public void handleError(ClientHttpResponse response) {
             }
         });
 
@@ -58,7 +56,7 @@ public class AbTestGateway {
         restTemplate.setRequestFactory(requestFactory);
     }
 
-    public ResponseEntity<String> getStatement(@RequestBody String body) {
+    public ResponseEntity<String> getStatement(String body) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_XML);
         addAuthorizationHeader(headers);
@@ -67,7 +65,10 @@ public class AbTestGateway {
     }
 
     public ResponseEntity<String> getStatementResult(String messageId) {
-        return restTemplate.getForEntity(applicationProperties.getBaseUrl() + "/Statements/" + messageId, String.class);
+        HttpHeaders headers = new HttpHeaders();
+        addAuthorizationHeader(headers);
+        HttpEntity<String> request = new HttpEntity<>(headers);
+        return restTemplate.exchange(applicationProperties.getBaseUrl() + "/Statements/" + messageId, HttpMethod.GET, request, String.class);
     }
 
     private void addAuthorizationHeader(HttpHeaders headers) {

@@ -5,6 +5,7 @@ import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.html.Span;
@@ -13,6 +14,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.page.Push;
 import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.function.ValueProvider;
 import com.vaadin.flow.router.Route;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +27,7 @@ import ru.alxndrzuev.iso20022.utils.PropertiesPersister;
 import javax.annotation.PostConstruct;
 import java.util.List;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 @Push
 @Route("settings")
@@ -42,8 +45,7 @@ public class SettingsPage extends BasePage {
 
     private TextField loginTextField;
     private PasswordField passwordTextField;
-    private ComboBox<Certificate> firstCerificateComboBox;
-    private ComboBox<Certificate> secondCerificateComboBox;
+    private Grid<Certificate> cerificateGrid;
     private ComboBox<Dialect> dialectComboBox;
     private TextField baseUrlTextField;
 
@@ -82,11 +84,12 @@ public class SettingsPage extends BasePage {
         FormLayout fl = new FormLayout();
         fl.setSizeFull();
         securityLayout.add(fl);
-        firstCerificateComboBox = new ComboBox("First signature certificate");
-        firstCerificateComboBox.setItemLabelGenerator(Certificate::getName);
-        secondCerificateComboBox = new ComboBox("Second signature certificate");
-        secondCerificateComboBox.setItemLabelGenerator(Certificate::getName);
-        fl.add(firstCerificateComboBox, secondCerificateComboBox);
+        cerificateGrid = new Grid<>();
+        cerificateGrid.setSelectionMode(Grid.SelectionMode.MULTI);
+        Grid.Column ownerColumn = cerificateGrid.addColumn((ValueProvider<Certificate, String>) certificate -> certificate.getSubjectName() != null ? certificate.getSubjectName() : "").setHeader("Owner");
+        Grid.Column organizationNameColumn = cerificateGrid.addColumn((ValueProvider<Certificate, String>) certificate -> certificate.getOrganizationName() != null ? certificate.getOrganizationName() : "").setHeader("Organization name");
+        organizationNameColumn.setFlexGrow(5);
+        fl.add(cerificateGrid);
         return securityLayout;
     }
 
@@ -140,9 +143,11 @@ public class SettingsPage extends BasePage {
     @PostConstruct
     public void init() {
         List<Certificate> certificates = cryptoService.getAvailableCertificates();
-        firstCerificateComboBox.setItems(certificates);
-        secondCerificateComboBox.setItems(certificates);
-
+        cerificateGrid.setItems(certificates);
+        if (certificates.size() < 10) {
+            cerificateGrid.setHeightByRows(true);
+            cerificateGrid.setHeight(String.valueOf(certificates.size()));
+        }
         if (applicationProperties.getLogin() != null) {
             loginTextField.setValue(applicationProperties.getLogin());
         }
@@ -153,23 +158,17 @@ public class SettingsPage extends BasePage {
             baseUrlTextField.setValue(applicationProperties.getBaseUrl());
         }
         dialectComboBox.setValue(applicationProperties.getDialect());
-        firstCerificateComboBox.setValue(certificates.stream()
-                .filter(certificate -> certificate.getId().equals(applicationProperties.getFirstCertificateAlias()))
-                .findFirst()
-                .orElse(null));
-        secondCerificateComboBox.setValue(certificates.stream()
-                .filter(certificate -> certificate.getId().equals(applicationProperties.getSecondCertificateAlias()))
-                .findFirst()
-                .orElse(null));
+        cerificateGrid.asMultiSelect().setValue(certificates.stream()
+                .filter(certificate -> applicationProperties.getCertificateAliases().contains(certificate.getId()))
+                .collect(Collectors.toSet()));
 
         save.addClickListener((ComponentEventListener<ClickEvent<Button>>) event -> {
             try {
                 Properties properties = new Properties();
-                if (firstCerificateComboBox.getValue() != null) {
-                    properties.setProperty(PropertiesPersister.FIRST_CERTIFICATE_ALIAS_PROPERTY, firstCerificateComboBox.getValue().getId());
-                }
-                if (secondCerificateComboBox.getValue() != null) {
-                    properties.setProperty(PropertiesPersister.SECOND_CERTIFICATE_ALIAS_PROPERTY, secondCerificateComboBox.getValue().getId());
+                if (cerificateGrid.getSelectedItems().size() > 0) {
+                    properties.setProperty(PropertiesPersister.CERTIFICATE_ALIASES_PROPERTY, cerificateGrid.getSelectedItems().stream()
+                            .map(certificate -> certificate.getId())
+                            .collect(Collectors.joining(",")));
                 }
                 properties.setProperty(PropertiesPersister.LOGIN_PROPERTY, loginTextField.getValue());
                 properties.setProperty(PropertiesPersister.PASSWORD_PROPERTY, passwordTextField.getValue());
@@ -180,6 +179,7 @@ public class SettingsPage extends BasePage {
                 propertiesPersister.persist(properties);
                 Notification.show("Configurations successfully saved", 3000, Notification.Position.TOP_END);
             } catch (Exception e) {
+                log.error("Could not save configuration. Exception:", e);
                 Notification.show("Could not save configuration", 3000, Notification.Position.TOP_END);
             }
         });

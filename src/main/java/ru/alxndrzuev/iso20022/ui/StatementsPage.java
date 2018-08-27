@@ -154,7 +154,7 @@ public class StatementsPage extends BasePage {
                     break;
                 } else {
                     ui.access(() -> {
-                        statementTextArea.setValue(generateResultt(responseEntity.getStatusCode().value(), responseEntity.getHeaders().entrySet(), responseEntity.getBody().toString()));
+                        statementTextArea.setValue(generateResultt(responseEntity.getStatusCode().value(), responseEntity.getHeaders().entrySet(), responseEntity.getBody() != null ? responseEntity.getBody().toString() : null));
                     });
                 }
             } catch (Exception e) {
