@@ -5,6 +5,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.xml.security.signature.XMLSignature;
 import org.apache.xml.security.transforms.Transforms;
+import org.apache.xml.security.transforms.params.XPath2FilterContainer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
@@ -64,9 +65,18 @@ public class CryptoproCryptoService implements CryptoService {
 
         final DocumentBuilder documentBuilder = dbf.newDocumentBuilder();
         final Document doc = documentBuilder.parse(new InputSource(new StringReader(request)));
+        XPath xpath = XPathFactory.newInstance().newXPath();
+        NodeList link = (NodeList) xpath.evaluate("/*[local-name()='Document' and namespace-uri()='urn:iso:std:iso:20022:tech:xsd:camt.060.001.03']" +
+                        "/*[local-name()='AcctRptgReq' and namespace-uri()='urn:iso:std:iso:20022:tech:xsd:camt.060.001.03']" +
+                        "/*[local-name()='SplmtryData' and namespace-uri()='urn:iso:std:iso:20022:tech:xsd:camt.060.001.03']" +
+                        "/*[local-name()='Envlp' and namespace-uri()='urn:iso:std:iso:20022:tech:xsd:camt.060.001.03']"
+                , doc, XPathConstants.NODESET);
+        Element signatureNode = doc.createElement("SngtrSt");
+        link.item(0).appendChild(signatureNode);
 
-        for (String certificateAlias : applicationProperties.getCertificateAliases()) {
-            sign(certificateAlias, doc);
+        for (int i = 0; i < applicationProperties.getCertificateAliases().size(); i++) {
+            String certificateAlias = applicationProperties.getCertificateAliases().get(i);
+            sign(certificateAlias, doc, signatureNode);
         }
 
         final ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -78,38 +88,36 @@ public class CryptoproCryptoService implements CryptoService {
     }
 
     @SneakyThrows
-    private void sign(String alias, Document doc) {
+    private XMLSignature sign(String alias, Document doc, Element element) {
         PrivateKey privateKey = (PrivateKey) ks.getKey(alias, null);
         X509Certificate cert = (X509Certificate) ks.getCertificate(alias);
 
-        sign(privateKey, cert, doc);
+        return sign(privateKey, cert, doc, element);
     }
 
     @SneakyThrows
-    private void sign(PrivateKey privateKey, X509Certificate cert, Document doc) {
-        log.info("___________" + privateKey.getAlgorithm());
+    private XMLSignature sign(PrivateKey privateKey, X509Certificate cert, Document doc, Element element) {
         SignatureAlgorithm signatureAlgorithm = SignatureAlgorithm.getSignatureAlgorithmByKey(privateKey.getAlgorithm());
         if (signatureAlgorithm == null) {
             throw new RuntimeException("Unsupported key type " + privateKey.getAlgorithm());
         }
         final XMLSignature sig = new XMLSignature(doc, "", signatureAlgorithm.getSignatureMethod());
-        XPath xpath = XPathFactory.newInstance().newXPath();
-        NodeList link = (NodeList) xpath.evaluate("/*[local-name()='Document' and namespace-uri()='urn:iso:std:iso:20022:tech:xsd:camt.060.001.03']" +
-                        "/*[local-name()='AcctRptgReq' and namespace-uri()='urn:iso:std:iso:20022:tech:xsd:camt.060.001.03']" +
-                        "/*[local-name()='SplmtryData' and namespace-uri()='urn:iso:std:iso:20022:tech:xsd:camt.060.001.03']" +
-                        "/*[local-name()='Envlp' and namespace-uri()='urn:iso:std:iso:20022:tech:xsd:camt.060.001.03']"
-                , doc, XPathConstants.NODESET);
-        Element signatureNode = doc.createElement("SngtrSt");
-        link.item(0).appendChild(signatureNode);
-        signatureNode.appendChild(sig.getElement());
 
         final Transforms transforms = new Transforms(doc);
         transforms.addTransform(Transforms.TRANSFORM_ENVELOPED_SIGNATURE);
         transforms.addTransform(Transforms.TRANSFORM_C14N_WITH_COMMENTS);
+        String filter = "//ds:Signature";
+        XPath2FilterContainer xpathC = XPath2FilterContainer.newInstanceSubtract(doc, filter);
+        xpathC.setXPathNamespaceContext("dsig-xpath", Transforms.TRANSFORM_XPATH2FILTER);
+        Element node = xpathC.getElement();
+        transforms.addTransform(Transforms.TRANSFORM_XPATH2FILTER, node);
+
+        element.appendChild(sig.getElement());
 
         sig.addDocument("", transforms, signatureAlgorithm.getDigestMethod());
         sig.addKeyInfo(cert);
         sig.sign(privateKey);
+        return sig;
     }
 
     @Override

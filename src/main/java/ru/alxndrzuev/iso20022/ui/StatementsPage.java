@@ -121,17 +121,17 @@ public class StatementsPage extends BasePage {
 
             String requestString = statementRequestMessageBuilder.buildRequest(requestMessage);
             String signedRequestString = cryptoService.signRequest(requestString);
-            requestTextArea.setValue(xmlFormatter.format(signedRequestString));
+            requestTextArea.setValue(signedRequestString);
         });
 
         sendRequest.addClickListener((ComponentEventListener<ClickEvent<Button>>) event -> {
             StatementRequestMessage requestMessage = getRequestMessage();
 
             String requestString = statementRequestMessageBuilder.buildRequest(requestMessage);
-            requestString = cryptoService.signRequest(requestString);
-            requestTextArea.setValue(xmlFormatter.format(requestString));
+            String signedRequestString = cryptoService.signRequest(requestString);
+            requestTextArea.setValue(signedRequestString);
             try {
-                ResponseEntity responseEntity = gateway.getStatement(requestString);
+                ResponseEntity responseEntity = gateway.getStatement(signedRequestString);
                 responseTextArea.setValue(generateResultt(responseEntity.getStatusCode().value(), responseEntity.getHeaders().entrySet(), responseEntity.getBody() != null ? responseEntity.getBody().toString() : null));
                 if (HttpStatus.OK.equals(responseEntity.getStatusCode())) {
                     new Thread(() -> updateStatementResult(requestMessage.getMessageId(), getUI().get())).start();
