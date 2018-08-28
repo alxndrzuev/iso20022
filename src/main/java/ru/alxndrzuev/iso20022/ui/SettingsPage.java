@@ -7,7 +7,6 @@ import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -66,20 +65,15 @@ public class SettingsPage extends BasePage {
         vl.add(buildSecurityLayout());
         vl.add(buildNetworkLayout());
         vl.add(buildCommonLayout());
-        main.add(vl);
         VerticalLayout fl = buildFooterLayout();
+
+        main.add(vl);
         main.add(fl);
         main.expand(fl);
     }
 
     private Div buildSecurityLayout() {
-        Div securityLayout = new Div();
-        securityLayout.getStyle().set("width", "calc(100% - 20px)");
-        securityLayout.getStyle().set("background-color", "var(--lumo-shade-5pct)");
-        securityLayout.getStyle().set("padding", "10px");
-        Label label = new Label("Signatures");
-        label.getStyle().set("font-size", "var(--lumo-font-size-xxxl)");
-        securityLayout.add(label);
+        Div securityLayout = buildSettingsLayout("Signatures");
 
         FormLayout fl = new FormLayout();
         fl.setSizeFull();
@@ -94,13 +88,7 @@ public class SettingsPage extends BasePage {
     }
 
     private Div buildNetworkLayout() {
-        Div networkLayout = new Div();
-        networkLayout.getStyle().set("width", "calc(100% - 20px)");
-        networkLayout.getStyle().set("background-color", "var(--lumo-shade-5pct)");
-        networkLayout.getStyle().set("padding", "10px");
-        Span text = new Span("Network");
-        text.getStyle().set("font-size", "var(--lumo-font-size-xxxl)");
-        networkLayout.add(text);
+        Div networkLayout = buildSettingsLayout("Network");
 
         FormLayout fl = new FormLayout();
         fl.setSizeFull();
@@ -113,13 +101,7 @@ public class SettingsPage extends BasePage {
     }
 
     private Div buildCommonLayout() {
-        Div commonLayout = new Div();
-        commonLayout.getStyle().set("width", "calc(100% - 20px)");
-        commonLayout.getStyle().set("background-color", "var(--lumo-shade-5pct)");
-        commonLayout.getStyle().set("padding", "10px");
-        Span text = new Span("Common");
-        text.getStyle().set("font-size", "var(--lumo-font-size-xxxl)");
-        commonLayout.add(text);
+        Div commonLayout = buildSettingsLayout("Common");
 
         FormLayout fl = new FormLayout();
         fl.setSizeFull();
@@ -183,5 +165,16 @@ public class SettingsPage extends BasePage {
                 Notification.show("Could not save configuration", 3000, Notification.Position.TOP_END);
             }
         });
+    }
+
+    private Div buildSettingsLayout(String name) {
+        Div commonLayout = new Div();
+        commonLayout.getStyle().set("width", "calc(100% - 20px)");
+        commonLayout.getStyle().set("background-color", "var(--lumo-shade-5pct)");
+        commonLayout.getStyle().set("padding", "10px");
+        Span text = new Span(name);
+        text.getStyle().set("font-size", "var(--lumo-font-size-xxxl)");
+        commonLayout.add(text);
+        return commonLayout;
     }
 }

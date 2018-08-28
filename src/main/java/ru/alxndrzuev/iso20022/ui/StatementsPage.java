@@ -98,7 +98,6 @@ public class StatementsPage extends BasePage {
         statementTextArea.setReadOnly(true);
         statementTextArea.setWidth("100%");
         statementTextArea.setVisible(false);
-        statementTextArea.setValue("");
         tabs.add(statementTab);
         pages.add(statementTextArea);
         tabsToPages.put(statementTab, statementTextArea);
@@ -111,14 +110,12 @@ public class StatementsPage extends BasePage {
 
         generateRequest.addClickListener((ComponentEventListener<ClickEvent<Button>>) event -> {
             StatementRequestMessage requestMessage = getRequestMessage();
-
             String requestString = statementRequestMessageBuilder.buildRequest(requestMessage);
             requestTextArea.setValue(requestString);
         });
 
         signRequest.addClickListener((ComponentEventListener<ClickEvent<Button>>) event -> {
             StatementRequestMessage requestMessage = getRequestMessage();
-
             String requestString = statementRequestMessageBuilder.buildRequest(requestMessage);
             String signedRequestString = cryptoService.signRequest(requestString);
             requestTextArea.setValue(signedRequestString);
@@ -131,8 +128,8 @@ public class StatementsPage extends BasePage {
             String signedRequestString = cryptoService.signRequest(requestString);
             requestTextArea.setValue(signedRequestString);
             try {
-                ResponseEntity responseEntity = gateway.getStatement(signedRequestString);
-                responseTextArea.setValue(generateResultt(responseEntity.getStatusCode().value(), responseEntity.getHeaders().entrySet(), responseEntity.getBody() != null ? responseEntity.getBody().toString() : null));
+                ResponseEntity<String> responseEntity = gateway.getStatement(signedRequestString);
+                responseTextArea.setValue(generateResult(responseEntity.getStatusCode().value(), responseEntity.getHeaders().entrySet(), responseEntity.getBody()));
                 if (HttpStatus.OK.equals(responseEntity.getStatusCode())) {
                     new Thread(() -> updateStatementResult(requestMessage.getMessageId(), getUI().get())).start();
                 }
@@ -146,15 +143,15 @@ public class StatementsPage extends BasePage {
     private void updateStatementResult(String messageId, UI ui) {
         for (int i = 0; i < STATEMENT_UPDATE_RETRY_COUNT; i++) {
             try {
-                ResponseEntity responseEntity = gateway.getStatementResult(messageId);
+                ResponseEntity<String> responseEntity = gateway.getStatementResult(messageId);
                 if (responseEntity.getStatusCode().equals(HttpStatus.OK)) {
                     ui.access(() -> {
-                        statementTextArea.setValue(generateResultt(responseEntity.getStatusCode().value(), responseEntity.getHeaders().entrySet(), xmlFormatter.format(responseEntity.getBody().toString())));
+                        statementTextArea.setValue(generateResult(responseEntity.getStatusCode().value(), responseEntity.getHeaders().entrySet(), xmlFormatter.format(responseEntity.getBody())));
                     });
                     break;
                 } else {
                     ui.access(() -> {
-                        statementTextArea.setValue(generateResultt(responseEntity.getStatusCode().value(), responseEntity.getHeaders().entrySet(), responseEntity.getBody() != null ? responseEntity.getBody().toString() : null));
+                        statementTextArea.setValue(generateResult(responseEntity.getStatusCode().value(), responseEntity.getHeaders().entrySet(), responseEntity.getBody()));
                     });
                 }
             } catch (Exception e) {

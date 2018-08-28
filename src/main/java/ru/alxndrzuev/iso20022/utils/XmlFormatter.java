@@ -2,6 +2,7 @@ package ru.alxndrzuev.iso20022.utils;
 
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
 
@@ -38,6 +39,10 @@ public class XmlFormatter {
 
     @SneakyThrows
     public String format(String input) {
+        if (StringUtils.isBlank(input)) {
+            return input;
+        }
+
         Document doc = db.parse(new ByteArrayInputStream(input.getBytes()));
 
         try {

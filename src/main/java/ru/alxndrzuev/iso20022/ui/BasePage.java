@@ -11,7 +11,6 @@ import com.vaadin.flow.component.tabs.Tabs;
 import com.vaadin.flow.component.textfield.TextArea;
 import org.springframework.http.HttpStatus;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +19,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public abstract class BasePage extends HorizontalLayout {
+
+    protected static final String MENU_WIDTH = "300px";
 
     protected VerticalLayout menu;
     protected VerticalLayout main;
@@ -51,24 +52,7 @@ public abstract class BasePage extends HorizontalLayout {
         });
     }
 
-    protected String generateResult(int httpStatusCode, Set<Map.Entry<String, Collection<String>>> headers, String body) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(httpStatusCode).append(" ").append(HttpStatus.valueOf(httpStatusCode).getReasonPhrase());
-        sb.append("\n\n");
-        headers.stream().forEach(entry -> {
-            sb.append(entry.getKey());
-            sb.append(" : ");
-            sb.append(entry.getValue().stream().collect(Collectors.joining(",")));
-            sb.append("\n");
-        });
-        sb.append("\n");
-        if (body != null) {
-            sb.append(body);
-        }
-        return sb.toString();
-    }
-
-    protected String generateResultt(int httpStatusCode, Set<Map.Entry<String, List<String>>> headers, String body) {
+    protected String generateResult(int httpStatusCode, Set<Map.Entry<String, List<String>>> headers, String body) {
         StringBuilder sb = new StringBuilder();
         sb.append(httpStatusCode).append(" ").append(HttpStatus.valueOf(httpStatusCode).getReasonPhrase());
         sb.append("\n\n");
@@ -88,7 +72,7 @@ public abstract class BasePage extends HorizontalLayout {
     private VerticalLayout buildMenu() {
         menu = new VerticalLayout();
         menu.getStyle().set("position", "fixed");
-        menu.getStyle().set("width", "300px");
+        menu.getStyle().set("width", MENU_WIDTH);
         menu.setSpacing(false);
         menu.setMargin(false);
         menu.setPadding(false);
@@ -103,8 +87,8 @@ public abstract class BasePage extends HorizontalLayout {
         main.setMargin(false);
         main.setPadding(false);
         main.setSpacing(false);
-        main.getStyle().set("width", "calc(100% - 300px)");
-        main.getStyle().set("margin-left", "300px");
+        main.getStyle().set("width", "calc(100% - " + MENU_WIDTH + ")");
+        main.getStyle().set("margin-left", MENU_WIDTH);
         add(menu, main);
 
         fieldLayout = new VerticalLayout();
@@ -114,13 +98,11 @@ public abstract class BasePage extends HorizontalLayout {
         requestTextArea = new TextArea();
         requestTextArea.setReadOnly(true);
         requestTextArea.setWidth("100%");
-        requestTextArea.setValue("");
         Tab responseTab = new Tab("Response");
         responseTextArea = new TextArea();
         responseTextArea.setReadOnly(true);
         responseTextArea.setWidth("100%");
         responseTextArea.setVisible(false);
-        responseTextArea.setValue("");
 
         tabs = new Tabs(requestTab, responseTab);
         pages = new Div(requestTextArea, responseTextArea);

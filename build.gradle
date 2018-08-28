@@ -56,3 +56,7 @@ dependencies {
     //Библиотека JCPxml.jar должна находиться вместе с библиотекой xmlsec.jar
     compile fileTree(include: ['*.jar'], dir: 'libs')
 }
+
+bootJar{
+    launchScript()
+}

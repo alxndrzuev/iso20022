@@ -42,6 +42,7 @@ import java.util.List;
 @Slf4j
 public class CryptoproCryptoService implements CryptoService {
     private KeyStore ks;
+    private DocumentBuilderFactory dbf;
 
     @Autowired
     private ApplicationProperties applicationProperties;
@@ -50,21 +51,20 @@ public class CryptoproCryptoService implements CryptoService {
     @SneakyThrows
     public void init() {
         JCPXMLDSigInit.init();
-
         ks = KeyStore.getInstance("HDImageStore");
         ks.load(null, null);
+
+        dbf = DocumentBuilderFactory.newInstance();
+        dbf.setIgnoringElementContentWhitespace(true);
+        dbf.setCoalescing(true);
+        dbf.setNamespaceAware(true);
     }
 
     @Override
     @SneakyThrows
     public String signRequest(String request) {
-        final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-        dbf.setIgnoringElementContentWhitespace(true);
-        dbf.setCoalescing(true);
-        dbf.setNamespaceAware(true);
-
-        final DocumentBuilder documentBuilder = dbf.newDocumentBuilder();
-        final Document doc = documentBuilder.parse(new InputSource(new StringReader(request)));
+        DocumentBuilder documentBuilder = dbf.newDocumentBuilder();
+        Document doc = documentBuilder.parse(new InputSource(new StringReader(request)));
         XPath xpath = XPathFactory.newInstance().newXPath();
         NodeList link = (NodeList) xpath.evaluate("/*[local-name()='Document' and namespace-uri()='urn:iso:std:iso:20022:tech:xsd:camt.060.001.03']" +
                         "/*[local-name()='AcctRptgReq' and namespace-uri()='urn:iso:std:iso:20022:tech:xsd:camt.060.001.03']" +
@@ -79,9 +79,9 @@ public class CryptoproCryptoService implements CryptoService {
             sign(certificateAlias, doc, signatureNode);
         }
 
-        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        final TransformerFactory tf = TransformerFactory.newInstance();
-        final Transformer trans = tf.newTransformer();
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        TransformerFactory tf = TransformerFactory.newInstance();
+        Transformer trans = tf.newTransformer();
         trans.transform(new DOMSource(doc), new StreamResult(baos));
 
         return new String(baos.toByteArray());
@@ -101,9 +101,9 @@ public class CryptoproCryptoService implements CryptoService {
         if (signatureAlgorithm == null) {
             throw new RuntimeException("Unsupported key type " + privateKey.getAlgorithm());
         }
-        final XMLSignature sig = new XMLSignature(doc, "", signatureAlgorithm.getSignatureMethod());
+        XMLSignature sig = new XMLSignature(doc, "", signatureAlgorithm.getSignatureMethod());
 
-        final Transforms transforms = new Transforms(doc);
+        Transforms transforms = new Transforms(doc);
         transforms.addTransform(Transforms.TRANSFORM_ENVELOPED_SIGNATURE);
         transforms.addTransform(Transforms.TRANSFORM_C14N_WITH_COMMENTS);
         String filter = "//ds:Signature";
