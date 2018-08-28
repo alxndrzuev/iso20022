@@ -24,7 +24,7 @@ apply plugin: "io.spring.dependency-management"
 
 repositories {
     mavenCentral()
-    maven { url = "http://maven.vaadin.com/vaadin-addons"}
+    maven { url = "http://maven.vaadin.com/vaadin-addons" }
     maven { url = "https://maven.vaadin.com/vaadin-prereleases" }
 }
 
@@ -52,20 +52,7 @@ dependencies {
     compile group: 'org.apache.santuario', name: 'xmlsec', version: '1.5.8'
     compile group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.6'
 
+    //Согласно ЖТЯИ.00091-01 33 01. Руководство программиста.pdf
+    //Библиотека JCPxml.jar должна находиться вместе с библиотекой xmlsec.jar
     compile fileTree(include: ['*.jar'], dir: 'libs')
-}
-
-sourceSets {
-    main {
-        groovy {
-            srcDirs = ['src/main/java']
-        }
-        java {
-            srcDirs = []
-        }
-        resources {
-            srcDirs 'src/main/resources'
-            srcDirs 'src/main/webapp'
-        }
-    }
 }
