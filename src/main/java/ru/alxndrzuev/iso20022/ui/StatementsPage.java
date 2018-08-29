@@ -19,9 +19,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import ru.alxndrzuev.iso20022.crypto.CryptoService;
 import ru.alxndrzuev.iso20022.gateways.ab.AbTestGateway;
-import ru.alxndrzuev.iso20022.statement.builder.StatementRequestMessageBuilder;
-import ru.alxndrzuev.iso20022.statement.model.StatementRequest;
-import ru.alxndrzuev.iso20022.statement.model.StatementRequestMessage;
+import ru.alxndrzuev.iso20022.documents.statements.builder.StatementRequestMessageBuilder;
+import ru.alxndrzuev.iso20022.documents.statements.model.StatementRequest;
+import ru.alxndrzuev.iso20022.documents.statements.model.StatementRequestMessage;
 import ru.alxndrzuev.iso20022.utils.XmlFormatter;
 
 import java.time.ZoneId;
