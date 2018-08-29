@@ -41,8 +41,9 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
-import ru.alxndrzuev.iso20022.documents.payments.model.PaymentRequest;
-import ru.alxndrzuev.iso20022.documents.payments.model.PaymentRequestMessage;
+import ru.alxndrzuev.iso20022.documents.payments.model.PaymentInstruction;
+import ru.alxndrzuev.iso20022.documents.payments.model.PaymentMessage;
+import ru.alxndrzuev.iso20022.documents.payments.model.PaymentPacket;
 import ru.alxndrzuev.iso20022.utils.DateUtils;
 
 import javax.annotation.PostConstruct;
@@ -50,7 +51,6 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.Marshaller;
 import java.io.StringWriter;
-import java.math.BigDecimal;
 import java.util.Date;
 
 @Service
@@ -63,12 +63,12 @@ public class PaymentRequestMessageBuilder {
     public void init() {
         jaxbContext = JAXBContext.newInstance("iso20022.payments");
 
-//        PaymentRequestMessage message = new PaymentRequestMessage();
+//        PaymentMessage message = new PaymentMessage();
 //        message.setMessageId("7728142469_pain_MSG_20180829_00002");
 //        message.setAgentInn("7728142469");
 //        message.setAgentName("Общество с ограниченной ответственностью \"Управляющая компания \"Альфа-Капитал\"Д.У.");
 //
-//        PaymentRequest paymentRequest=new PaymentRequest();
+//        PaymentPacket paymentRequest=new PaymentPacket();
 //        message.getRequests().add(paymentRequest);
 //        paymentRequest.setRequestId("7728142469_pain_PKG_20180829_00002");
 //        paymentRequest.setExecutionDate(new Date());
@@ -81,11 +81,11 @@ public class PaymentRequestMessageBuilder {
 //        paymentRequest.setDebtorBankName("АО \"АЛЬФА-БАНК\" Г МОСКВА");
 //        paymentRequest.setDebtorBankCorrAccount("30101810200000000593");
 //
-//        PaymentRequest.Payment payment=new PaymentRequest.Payment();
+//        PaymentPacket.PaymentInstruction payment=new PaymentPacket.PaymentInstruction();
 //        paymentRequest.getPayments().add(payment);
 //        payment.setInstructionId("7728142469_pain_PMT_20180829_00010");
 //        payment.setDocumentId("20");
-//        payment.setUrgency(PaymentRequest.PaymentUrgency.NURG);
+//        payment.setUrgency(PaymentPacket.PaymentUrgency.NURG);
 //        payment.setPriority("5");
 //        payment.setUin("0");
 //        payment.setDescription("Обычный платеж физ лицу");
@@ -105,7 +105,7 @@ public class PaymentRequestMessageBuilder {
 
 
     @SneakyThrows
-    public String buildRequest(PaymentRequestMessage request) {
+    public String buildRequest(PaymentMessage request) {
         Marshaller marshaller = jaxbContext.createMarshaller();
         marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
         StringWriter sw = new StringWriter();
@@ -113,7 +113,7 @@ public class PaymentRequestMessageBuilder {
         return sw.toString();
     }
 
-    private JAXBElement<Document> convertRequest(PaymentRequestMessage request) {
+    private JAXBElement<Document> convertRequest(PaymentMessage request) {
         Document document = new Document();
         document.setCstmrCdtTrfInitn(new CustomerCreditTransferInitiationV06());
 
@@ -125,7 +125,7 @@ public class PaymentRequestMessageBuilder {
 
         groupHeader.setInitgPty(buildPartyIdentification(request.getAgentName(), request.getAgentInn(), null));
 
-        for (PaymentRequest req : request.getRequests()) {
+        for (PaymentPacket req : request.getRequests()) {
             PaymentInstruction16 paymentInstruction = new PaymentInstruction16();
             paymentInstruction.setPmtInfId(req.getRequestId());
             paymentInstruction.setPmtMtd(PaymentMethod3Code.TRF);
@@ -144,7 +144,7 @@ public class PaymentRequestMessageBuilder {
 
             paymentInstruction.setDbtrAgtAcct(buildCashAccount(req.getDebtorBankCorrAccount(), null, null));
 
-            for (PaymentRequest.Payment payment : req.getPayments()) {
+            for (PaymentInstruction payment : req.getPayments()) {
                 CreditTransferTransaction20 creditTransferTransaction = new CreditTransferTransaction20();
                 paymentInstruction.getCdtTrfTxInf().add(creditTransferTransaction);
 

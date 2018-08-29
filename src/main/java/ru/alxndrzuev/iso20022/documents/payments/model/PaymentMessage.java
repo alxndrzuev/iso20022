@@ -6,10 +6,10 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class PaymentRequestMessage {
+public class PaymentMessage {
     private String messageId;
     private String agentName;
     private String agentInn;
 
-    private List<PaymentRequest> requests = Lists.newArrayList();
+    private List<PaymentPacket> requests = Lists.newArrayList();
 }
