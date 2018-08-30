@@ -90,12 +90,14 @@ public class PaymentInstructionComponent extends Div {
         creditorNameTextField = new TextField();
         creditorNameTextField.setSizeFull();
         creditorCountryTextField = new TextField();
+        creditorCountryTextField.setValue("RU");
         creditorCountryTextField.setSizeFull();
         creditorInnTextField = new TextField();
         creditorInnTextField.setSizeFull();
         creditorAccountTextField = new TextField();
         creditorAccountTextField.setSizeFull();
         creditorAccountCurrencyTextField = new TextField();
+        creditorAccountCurrencyTextField.setValue("RUB");
         creditorAccountCurrencyTextField.setSizeFull();
 
         removeInstructionButton = new Button("Remove instruction");
