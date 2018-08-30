@@ -62,45 +62,6 @@ public class PaymentRequestMessageBuilder {
     @SneakyThrows
     public void init() {
         jaxbContext = JAXBContext.newInstance("iso20022.payments");
-
-//        PaymentMessage message = new PaymentMessage();
-//        message.setMessageId("7728142469_pain_MSG_20180829_00002");
-//        message.setAgentInn("7728142469");
-//        message.setAgentName("Общество с ограниченной ответственностью \"Управляющая компания \"Альфа-Капитал\"Д.У.");
-//
-//        PaymentPacket paymentRequest=new PaymentPacket();
-//        message.getRequests().add(paymentRequest);
-//        paymentRequest.setRequestId("7728142469_pain_PKG_20180829_00002");
-//        paymentRequest.setExecutionDate(new Date());
-//        paymentRequest.setDebitorCountry("RU");
-//        paymentRequest.setDebtorName("Общество с ограниченной ответственностью \"Управляющая компания \"Альфа-Капитал\"Д.У.");
-//        paymentRequest.setDebtorInn("7728142469");
-//        paymentRequest.setDebtorAccount("40701810101600000059");
-//        paymentRequest.setDebtorAccountCurrency("RUB");
-//        paymentRequest.setDebtorBankBic("044525593");
-//        paymentRequest.setDebtorBankName("АО \"АЛЬФА-БАНК\" Г МОСКВА");
-//        paymentRequest.setDebtorBankCorrAccount("30101810200000000593");
-//
-//        PaymentPacket.PaymentInstruction payment=new PaymentPacket.PaymentInstruction();
-//        paymentRequest.getPayments().add(payment);
-//        payment.setInstructionId("7728142469_pain_PMT_20180829_00010");
-//        payment.setDocumentId("20");
-//        payment.setUrgency(PaymentPacket.PaymentUrgency.NURG);
-//        payment.setPriority("5");
-//        payment.setUin("0");
-//        payment.setDescription("Обычный платеж физ лицу");
-//        payment.setDocumentDate(new Date());
-//        payment.setAmount(new BigDecimal("5000").setScale(2));
-//        payment.setCreditorBankBic("044525593");
-//        payment.setCreditorBankName("АО \"АЛЬФА-БАНК\" Г МОСКВА");
-//        payment.setCreditorBankCorrAccount("30101810200000000593");
-//        payment.setCreditorName("ФЕДОТОВ ВИТАЛИЙ ВЯЧЕСЛАВОВИЧ");
-//        payment.setCreditorCountry("RU");
-//        payment.setCreditorInn("773568135979");
-//        payment.setCreditorAccount("40817810004000000190");
-//        payment.setCreditorAccountCurrency("RUB");
-//
-//        log.info(buildRequest(message));
     }
 
 
@@ -120,14 +81,14 @@ public class PaymentRequestMessageBuilder {
         GroupHeader48 groupHeader = new GroupHeader48();
         groupHeader.setCreDtTm(DateUtils.toXmlDate(new Date()));
         groupHeader.setMsgId(request.getMessageId());
-        groupHeader.setNbOfTxs(String.valueOf(request.getRequests().size()));
+        groupHeader.setNbOfTxs(String.valueOf(request.getPaymentPackets().size()));
         document.getCstmrCdtTrfInitn().setGrpHdr(groupHeader);
 
         groupHeader.setInitgPty(buildPartyIdentification(request.getAgentName(), request.getAgentInn(), null));
 
-        for (PaymentPacket req : request.getRequests()) {
+        for (PaymentPacket req : request.getPaymentPackets()) {
             PaymentInstruction16 paymentInstruction = new PaymentInstruction16();
-            paymentInstruction.setPmtInfId(req.getRequestId());
+            paymentInstruction.setPmtInfId(req.getPacketId());
             paymentInstruction.setPmtMtd(PaymentMethod3Code.TRF);
             paymentInstruction.setPmtTpInf(new PaymentTypeInformation19());
             paymentInstruction.getPmtTpInf().setInstrPrty(Priority2Code.NORM);

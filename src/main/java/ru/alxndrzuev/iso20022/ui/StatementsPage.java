@@ -18,20 +18,23 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import ru.alxndrzuev.iso20022.crypto.CryptoService;
-import ru.alxndrzuev.iso20022.gateways.ab.AbTestGateway;
 import ru.alxndrzuev.iso20022.documents.statements.builder.StatementRequestMessageBuilder;
 import ru.alxndrzuev.iso20022.documents.statements.model.StatementRequest;
 import ru.alxndrzuev.iso20022.documents.statements.model.StatementRequestMessage;
+import ru.alxndrzuev.iso20022.gateways.ab.AbTestGateway;
+import ru.alxndrzuev.iso20022.utils.DateUtils;
 import ru.alxndrzuev.iso20022.utils.XmlFormatter;
 
-import java.time.ZoneId;
-import java.util.Date;
 import java.util.UUID;
 
 @Push
 @Route("statements")
 @Slf4j
 public class StatementsPage extends BasePage {
+    private static final String SIGN_ELEMENT_XPATH = "/*[local-name()='Document' and namespace-uri()='urn:iso:std:iso:20022:tech:xsd:camt.060.001.03']" +
+            "/*[local-name()='AcctRptgReq' and namespace-uri()='urn:iso:std:iso:20022:tech:xsd:camt.060.001.03']" +
+            "/*[local-name()='SplmtryData' and namespace-uri()='urn:iso:std:iso:20022:tech:xsd:camt.060.001.03']" +
+            "/*[local-name()='Envlp' and namespace-uri()='urn:iso:std:iso:20022:tech:xsd:camt.060.001.03']";
 
     @Autowired
     private StatementRequestMessageBuilder statementRequestMessageBuilder;
@@ -117,7 +120,7 @@ public class StatementsPage extends BasePage {
         signRequest.addClickListener((ComponentEventListener<ClickEvent<Button>>) event -> {
             StatementRequestMessage requestMessage = getRequestMessage();
             String requestString = statementRequestMessageBuilder.buildRequest(requestMessage);
-            String signedRequestString = cryptoService.signRequest(requestString);
+            String signedRequestString = cryptoService.signRequest(requestString, SIGN_ELEMENT_XPATH);
             requestTextArea.setValue(signedRequestString);
         });
 
@@ -125,7 +128,7 @@ public class StatementsPage extends BasePage {
             StatementRequestMessage requestMessage = getRequestMessage();
 
             String requestString = statementRequestMessageBuilder.buildRequest(requestMessage);
-            String signedRequestString = cryptoService.signRequest(requestString);
+            String signedRequestString = cryptoService.signRequest(requestString, SIGN_ELEMENT_XPATH);
             requestTextArea.setValue(signedRequestString);
             try {
                 ResponseEntity<String> responseEntity = gateway.getStatement(signedRequestString);
@@ -170,8 +173,8 @@ public class StatementsPage extends BasePage {
         request.setRequestId(requestIdTextField.getValue());
         request.setAccount(accountTextField.getValue());
         request.setOrganizationName(organizationNameTextField.getValue());
-        request.setDateFrom(Date.from(dateFromDatePicker.getValue().atStartOfDay(ZoneId.systemDefault()).toInstant()));
-        request.setDateTo(Date.from(dateToDatePicker.getValue().atStartOfDay(ZoneId.systemDefault()).toInstant()));
+        request.setDateFrom(DateUtils.toDate(dateFromDatePicker.getValue()));
+        request.setDateTo(DateUtils.toDate(dateToDatePicker.getValue()));
         requestMessage.getRequests().add(request);
         return requestMessage;
     }

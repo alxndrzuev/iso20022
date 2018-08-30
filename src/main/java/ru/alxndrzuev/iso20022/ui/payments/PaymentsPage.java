@@ -27,6 +27,11 @@ import java.util.UUID;
 @Route("payments")
 @Slf4j
 public class PaymentsPage extends BasePage {
+    private static final String SIGN_ELEMENT_XPATH = "/*[local-name()='Document' and namespace-uri()='urn:iso:std:iso:20022:tech:xsd:pain.001.001.06']" +
+            "/*[local-name()='CstmrCdtTrfInitn' and namespace-uri()='urn:iso:std:iso:20022:tech:xsd:pain.001.001.06']" +
+            "/*[local-name()='SplmtryData' and namespace-uri()='urn:iso:std:iso:20022:tech:xsd:pain.001.001.06']" +
+            "/*[local-name()='Envlp' and namespace-uri()='urn:iso:std:iso:20022:tech:xsd:pain.001.001.06']";
+
     @Autowired
     private PaymentRequestMessageBuilder paymentRequestMessageBuilder;
 
@@ -51,6 +56,7 @@ public class PaymentsPage extends BasePage {
     private Button sendRequest;
 
     private TextArea paymentStatusesArea;
+    private PaymentPacketComponent paymentPacketComponent;
 
     public PaymentsPage() {
         FormLayout formLayout = new FormLayout();
@@ -58,14 +64,20 @@ public class PaymentsPage extends BasePage {
 
         messageIdTextField = new TextField();
         messageIdTextField.setValue(UUID.randomUUID().toString().substring(10));
+        messageIdTextField.setReadOnly(true);
+        messageIdTextField.setSizeFull();
         agentNameTextField = new TextField();
+        agentNameTextField.setSizeFull();
         agentInnTextField = new TextField();
+        agentInnTextField.setSizeFull();
 
         formLayout.addFormItem(messageIdTextField, "Message id");
         formLayout.addFormItem(agentNameTextField, "Agent name");
         formLayout.addFormItem(agentInnTextField, "Agent inn");
 
-        fieldLayout.add(new PaymentInstructionComponent());
+        formLayout.setResponsiveSteps(new FormLayout.ResponsiveStep("100px", 1), new FormLayout.ResponsiveStep("100px", 2));
+        paymentPacketComponent = new PaymentPacketComponent(messageIdTextField.getValue());
+        fieldLayout.add(paymentPacketComponent);
 
         generateRequest = new Button("Generate request");
         signRequest = new Button("Sign request");
@@ -97,7 +109,7 @@ public class PaymentsPage extends BasePage {
         signRequest.addClickListener((ComponentEventListener<ClickEvent<Button>>) event -> {
             PaymentMessage requestMessage = getPaymentMessage();
             String requestString = paymentRequestMessageBuilder.buildRequest(requestMessage);
-            String signedRequestString = cryptoService.signRequest(requestString);
+            String signedRequestString = cryptoService.signRequest(requestString, SIGN_ELEMENT_XPATH);
             requestTextArea.setValue(signedRequestString);
         });
 
@@ -105,13 +117,15 @@ public class PaymentsPage extends BasePage {
             PaymentMessage requestMessage = getPaymentMessage();
 
             String requestString = paymentRequestMessageBuilder.buildRequest(requestMessage);
-            String signedRequestString = cryptoService.signRequest(requestString);
+            String signedRequestString = cryptoService.signRequest(requestString, SIGN_ELEMENT_XPATH);
             requestTextArea.setValue(signedRequestString);
             try {
-                ResponseEntity<String> responseEntity = gateway.getStatement(signedRequestString);
-                responseTextArea.setValue(generateResult(responseEntity.getStatusCode().value(), responseEntity.getHeaders().entrySet(), responseEntity.getBody()));
+                ResponseEntity<String> responseEntity = gateway.createPayment(signedRequestString);
                 if (HttpStatus.OK.equals(responseEntity.getStatusCode())) {
+                    responseTextArea.setValue(generateResult(responseEntity.getStatusCode().value(), responseEntity.getHeaders().entrySet(), xmlFormatter.format(responseEntity.getBody())));
                     new Thread(() -> updatePaymentsResult(requestMessage.getMessageId(), getUI().get())).start();
+                } else {
+                    responseTextArea.setValue(generateResult(responseEntity.getStatusCode().value(), responseEntity.getHeaders().entrySet(), responseEntity.getBody()));
                 }
             } catch (Exception e) {
                 log.error("Exception:", e);
@@ -123,12 +137,11 @@ public class PaymentsPage extends BasePage {
     private void updatePaymentsResult(String messageId, UI ui) {
         for (int i = 0; i < STATEMENT_UPDATE_RETRY_COUNT; i++) {
             try {
-                ResponseEntity<String> responseEntity = gateway.getStatementResult(messageId);
+                ResponseEntity<String> responseEntity = gateway.getPaymentStatus(messageId);
                 if (responseEntity.getStatusCode().equals(HttpStatus.OK)) {
                     ui.access(() -> {
                         paymentStatusesArea.setValue(generateResult(responseEntity.getStatusCode().value(), responseEntity.getHeaders().entrySet(), xmlFormatter.format(responseEntity.getBody())));
                     });
-                    break;
                 } else {
                     ui.access(() -> {
                         paymentStatusesArea.setValue(generateResult(responseEntity.getStatusCode().value(), responseEntity.getHeaders().entrySet(), responseEntity.getBody()));
@@ -145,7 +158,9 @@ public class PaymentsPage extends BasePage {
     private PaymentMessage getPaymentMessage() {
         PaymentMessage requestMessage = new PaymentMessage();
         requestMessage.setMessageId(messageIdTextField.getValue());
-
+        requestMessage.setAgentInn(agentInnTextField.getValue());
+        requestMessage.setAgentName(agentNameTextField.getValue());
+        requestMessage.getPaymentPackets().add(paymentPacketComponent.buildPaymentPacket());
         return requestMessage;
     }
 }

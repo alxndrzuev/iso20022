@@ -8,9 +8,9 @@ import java.util.List;
 
 @Data
 public class PaymentPacket {
-    private String requestId;
+    private String packetId;
     private Date executionDate;
-    private String debitorCountry;
+    private String debtorCountry;
     private String debtorInn;
     private String debtorName;
     private String debtorAccount;

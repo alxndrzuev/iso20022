@@ -11,5 +11,5 @@ public class PaymentMessage {
     private String agentName;
     private String agentInn;
 
-    private List<PaymentPacket> requests = Lists.newArrayList();
+    private List<PaymentPacket> paymentPackets = Lists.newArrayList();
 }

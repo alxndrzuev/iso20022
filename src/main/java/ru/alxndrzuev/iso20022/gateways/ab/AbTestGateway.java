@@ -75,6 +75,21 @@ public class AbTestGateway {
         return restTemplate.exchange(applicationProperties.getBaseUrl() + "/Statements/" + messageId, HttpMethod.GET, request, String.class);
     }
 
+    public ResponseEntity<String> createPayment(String body) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_XML);
+        addAuthorizationHeader(headers);
+        HttpEntity<String> request = new HttpEntity<>(body, headers);
+        return restTemplate.exchange(applicationProperties.getBaseUrl() + "/Payments", HttpMethod.POST, request, String.class);
+    }
+
+    public ResponseEntity<String> getPaymentStatus(String messageId) {
+        HttpHeaders headers = new HttpHeaders();
+        addAuthorizationHeader(headers);
+        HttpEntity<String> request = new HttpEntity<>(headers);
+        return restTemplate.exchange(applicationProperties.getBaseUrl() + "/Payments/" + messageId, HttpMethod.GET, request, String.class);
+    }
+
     private void addAuthorizationHeader(HttpHeaders headers) {
         headers.set(HttpHeaders.AUTHORIZATION, "Basic " + Base64.encodeBase64String((applicationProperties.getLogin() + ":" + applicationProperties.getPassword()).getBytes()));
     }
