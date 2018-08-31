@@ -62,14 +62,11 @@ public class CryptoproCryptoService implements CryptoService {
 
     @Override
     @SneakyThrows
-    public String signRequest(String request) {
+    public String signRequest(String request, String signedElementXpath) {
         DocumentBuilder documentBuilder = dbf.newDocumentBuilder();
         Document doc = documentBuilder.parse(new InputSource(new StringReader(request)));
         XPath xpath = XPathFactory.newInstance().newXPath();
-        NodeList link = (NodeList) xpath.evaluate("/*[local-name()='Document' and namespace-uri()='urn:iso:std:iso:20022:tech:xsd:camt.060.001.03']" +
-                        "/*[local-name()='AcctRptgReq' and namespace-uri()='urn:iso:std:iso:20022:tech:xsd:camt.060.001.03']" +
-                        "/*[local-name()='SplmtryData' and namespace-uri()='urn:iso:std:iso:20022:tech:xsd:camt.060.001.03']" +
-                        "/*[local-name()='Envlp' and namespace-uri()='urn:iso:std:iso:20022:tech:xsd:camt.060.001.03']"
+        NodeList link = (NodeList) xpath.evaluate(signedElementXpath
                 , doc, XPathConstants.NODESET);
         Element signatureNode = doc.createElement("SngtrSt");
         link.item(0).appendChild(signatureNode);
