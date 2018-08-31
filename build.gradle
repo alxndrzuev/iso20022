@@ -55,6 +55,9 @@ dependencies {
     //Согласно ЖТЯИ.00091-01 33 01. Руководство программиста.pdf
     //Библиотека JCPxml.jar должна находиться вместе с библиотекой xmlsec.jar
     compile fileTree(include: ['*.jar'], dir: 'libs')
+
+    //TESTS
+    testCompile group: 'org.springframework.boot', name:'spring-boot-starter-test'
 }
 
 bootJar{
