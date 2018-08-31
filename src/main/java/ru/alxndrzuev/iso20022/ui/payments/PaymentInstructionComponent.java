@@ -37,14 +37,10 @@ public class PaymentInstructionComponent extends Div {
 
     private Button removeInstructionButton;
 
-    private String messageId;
     private int instructionId;
-    private Map components;
 
     public PaymentInstructionComponent(String messageId, int instructionId, Map components) {
         this.instructionId = instructionId;
-        this.components = components;
-        this.messageId = messageId;
 
         getStyle().set("width", "calc(100% - 4px)");
         getStyle().set("background-color", "var(--lumo-shade-5pct)");

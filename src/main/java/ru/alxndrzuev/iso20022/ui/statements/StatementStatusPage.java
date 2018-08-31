@@ -55,7 +55,7 @@ public class StatementStatusPage extends BasePage {
 
         pages.removeAll();
         tabs.removeAll();
-        
+
         Tab statementTab = new Tab("Statement");
         statementTextArea = new TextArea();
         statementTextArea.setReadOnly(true);

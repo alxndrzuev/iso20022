@@ -62,11 +62,11 @@ public class CryptoproCryptoService implements CryptoService {
 
     @Override
     @SneakyThrows
-    public String signRequest(String request, String element) {
+    public String signRequest(String request, String signedElementXpath) {
         DocumentBuilder documentBuilder = dbf.newDocumentBuilder();
         Document doc = documentBuilder.parse(new InputSource(new StringReader(request)));
         XPath xpath = XPathFactory.newInstance().newXPath();
-        NodeList link = (NodeList) xpath.evaluate(element
+        NodeList link = (NodeList) xpath.evaluate(signedElementXpath
                 , doc, XPathConstants.NODESET);
         Element signatureNode = doc.createElement("SngtrSt");
         link.item(0).appendChild(signatureNode);
