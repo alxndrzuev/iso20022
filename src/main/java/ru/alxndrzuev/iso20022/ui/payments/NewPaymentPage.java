@@ -6,6 +6,7 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.page.Push;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
@@ -23,10 +24,13 @@ import ru.alxndrzuev.iso20022.ui.BasePage;
 import ru.alxndrzuev.iso20022.utils.XmlFormatter;
 
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-@Route("payments")
+@Route("payment/new")
 @Slf4j
-public class PaymentsPage extends BasePage {
+@Push
+public class NewPaymentPage extends BasePage {
     private static final String SIGN_ELEMENT_XPATH = "/*[local-name()='Document' and namespace-uri()='urn:iso:std:iso:20022:tech:xsd:pain.001.001.06']" +
             "/*[local-name()='CstmrCdtTrfInitn' and namespace-uri()='urn:iso:std:iso:20022:tech:xsd:pain.001.001.06']" +
             "/*[local-name()='SplmtryData' and namespace-uri()='urn:iso:std:iso:20022:tech:xsd:pain.001.001.06']" +
@@ -44,8 +48,8 @@ public class PaymentsPage extends BasePage {
     @Autowired
     private XmlFormatter xmlFormatter;
 
-    private static final long STATEMENT_UPDATE_RATE = 10000l;
-    private static final int STATEMENT_UPDATE_RETRY_COUNT = 10;
+    private static final long PAYMENT_STATUS_UPDATE_RATE = 10000l;
+    private static final int PAYMENT_STATUS_UPDATE_RETRY_COUNT = 10;
 
     private TextField messageIdTextField;
     private TextField agentNameTextField;
@@ -58,7 +62,7 @@ public class PaymentsPage extends BasePage {
     private TextArea paymentStatusesArea;
     private PaymentPacketComponent paymentPacketComponent;
 
-    public PaymentsPage() {
+    public NewPaymentPage() {
         FormLayout formLayout = new FormLayout();
         fieldLayout.add(formLayout);
 
@@ -85,15 +89,14 @@ public class PaymentsPage extends BasePage {
         HorizontalLayout buttonsLayout = new HorizontalLayout(generateRequest, signRequest, sendRequest);
         fieldLayout.add(buttonsLayout);
 
-        Tab statementTab = new Tab("Payment statuses");
+        Tab paymentStatusTab = new Tab("Payment statuses");
         paymentStatusesArea = new TextArea();
         paymentStatusesArea.setReadOnly(true);
         paymentStatusesArea.setWidth("100%");
         paymentStatusesArea.setVisible(false);
-        tabs.add(statementTab);
+        tabs.add(paymentStatusTab);
         pages.add(paymentStatusesArea);
-        tabsToPages.put(statementTab, paymentStatusesArea);
-
+        tabsToPages.put(paymentStatusTab, paymentStatusesArea);
         addListeners();
     }
 
@@ -135,7 +138,7 @@ public class PaymentsPage extends BasePage {
 
     @SneakyThrows
     private void updatePaymentsResult(String messageId, UI ui) {
-        for (int i = 0; i < STATEMENT_UPDATE_RETRY_COUNT; i++) {
+        for (int i = 0; i < PAYMENT_STATUS_UPDATE_RETRY_COUNT; i++) {
             try {
                 ResponseEntity<String> responseEntity = gateway.getPaymentStatus(messageId);
                 if (responseEntity.getStatusCode().equals(HttpStatus.OK)) {
@@ -150,7 +153,7 @@ public class PaymentsPage extends BasePage {
             } catch (Exception e) {
                 log.error("Exception:", e);
             }
-            Thread.sleep(STATEMENT_UPDATE_RATE);
+            Thread.sleep(PAYMENT_STATUS_UPDATE_RATE);
         }
 
     }

@@ -101,30 +101,27 @@ public class PaymentInstructionComponent extends Div {
         creditorAccountCurrencyTextField.setSizeFull();
 
         removeInstructionButton = new Button("Remove instruction");
-        removeInstructionButton.addClickListener(new ComponentEventListener<ClickEvent<Button>>() {
-            @Override
-            public void onComponentEvent(ClickEvent<Button> event) {
-                setVisible(false);
-                components.remove(instructionId);
-            }
+        removeInstructionButton.addClickListener((ComponentEventListener<ClickEvent<Button>>) event -> {
+            setVisible(false);
+            components.remove(instructionId);
         });
         fieldsLayout.addFormItem(instructionIdTextField, label);
         fieldsLayout.add(removeInstructionButton);
         fieldsLayout.addFormItem(documentIdTextField, "Document id");
-        fieldsLayout.addFormItem(urgencyComboBox, "Urgency");
-        fieldsLayout.addFormItem(priorityTextField, "Priority");
-        fieldsLayout.addFormItem(uinTextField, "Uin");
-        fieldsLayout.addFormItem(descriptionTextField, "Description");
         fieldsLayout.addFormItem(documentDateDatePicker, "Document date");
+        fieldsLayout.addFormItem(descriptionTextField, "Description");
         fieldsLayout.addFormItem(amountTextField, "Amount");
+        fieldsLayout.addFormItem(creditorAccountTextField, "Creditor account");
+        fieldsLayout.addFormItem(creditorAccountCurrencyTextField, "Account currency");
+        fieldsLayout.addFormItem(creditorNameTextField, "Creditor name");
+        fieldsLayout.addFormItem(creditorInnTextField, "Creditor inn");
+        fieldsLayout.addFormItem(creditorCountryTextField, "Creditor country");
         fieldsLayout.addFormItem(creditorBankNameTextField, "Bank name");
         fieldsLayout.addFormItem(creditorBankBicTextField, "BIC");
         fieldsLayout.addFormItem(creditorBankCorrAccountTextField, "Bank corr account");
-        fieldsLayout.addFormItem(creditorNameTextField, "Creditor name");
-        fieldsLayout.addFormItem(creditorCountryTextField, "Creditor country");
-        fieldsLayout.addFormItem(creditorInnTextField, "Creditor inn");
-        fieldsLayout.addFormItem(creditorAccountTextField, "Creditor account");
-        fieldsLayout.addFormItem(creditorAccountCurrencyTextField, "Creditor account currency");
+        fieldsLayout.addFormItem(urgencyComboBox, "Urgency");
+        fieldsLayout.addFormItem(priorityTextField, "Priority");
+        fieldsLayout.addFormItem(uinTextField, "Uin");
 
         add(fieldsLayout);
     }

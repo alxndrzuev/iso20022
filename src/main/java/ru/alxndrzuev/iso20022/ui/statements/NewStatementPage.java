@@ -1,4 +1,4 @@
-package ru.alxndrzuev.iso20022.ui;
+package ru.alxndrzuev.iso20022.ui.statements;
 
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.ComponentEventListener;
@@ -22,15 +22,16 @@ import ru.alxndrzuev.iso20022.documents.statements.builder.StatementRequestMessa
 import ru.alxndrzuev.iso20022.documents.statements.model.StatementRequest;
 import ru.alxndrzuev.iso20022.documents.statements.model.StatementRequestMessage;
 import ru.alxndrzuev.iso20022.gateways.ab.AbTestGateway;
+import ru.alxndrzuev.iso20022.ui.BasePage;
 import ru.alxndrzuev.iso20022.utils.DateUtils;
 import ru.alxndrzuev.iso20022.utils.XmlFormatter;
 
 import java.util.UUID;
 
 @Push
-@Route("statements")
+@Route("statement/new")
 @Slf4j
-public class StatementsPage extends BasePage {
+public class NewStatementPage extends BasePage {
     private static final String SIGN_ELEMENT_XPATH = "/*[local-name()='Document' and namespace-uri()='urn:iso:std:iso:20022:tech:xsd:camt.060.001.03']" +
             "/*[local-name()='AcctRptgReq' and namespace-uri()='urn:iso:std:iso:20022:tech:xsd:camt.060.001.03']" +
             "/*[local-name()='SplmtryData' and namespace-uri()='urn:iso:std:iso:20022:tech:xsd:camt.060.001.03']" +
@@ -64,7 +65,7 @@ public class StatementsPage extends BasePage {
 
     private TextArea statementTextArea;
 
-    public StatementsPage() {
+    public NewStatementPage() {
         FormLayout formLayout = new FormLayout();
         fieldLayout.add(formLayout);
 
