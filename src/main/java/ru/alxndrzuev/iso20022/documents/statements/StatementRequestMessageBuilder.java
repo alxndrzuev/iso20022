@@ -1,4 +1,4 @@
-package ru.alxndrzuev.iso20022.documents.statements.builder;
+package ru.alxndrzuev.iso20022.documents.statements;
 
 
 import iso20022.statements.AccountIdentification4Choice;

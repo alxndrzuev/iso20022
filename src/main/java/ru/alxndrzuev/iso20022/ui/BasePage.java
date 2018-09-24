@@ -20,7 +20,7 @@ import java.util.stream.Stream;
 
 public abstract class BasePage extends HorizontalLayout {
 
-    protected static final String MENU_WIDTH = "300px";
+    protected static final String MENU_WIDTH = "200px";
 
     protected VerticalLayout menu;
     protected VerticalLayout main;

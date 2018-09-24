@@ -17,11 +17,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import ru.alxndrzuev.iso20022.crypto.CryptoService;
-import ru.alxndrzuev.iso20022.documents.statements.builder.StatementRequestMessageBuilder;
+import ru.alxndrzuev.iso20022.documents.statements.StatementsService;
 import ru.alxndrzuev.iso20022.documents.statements.model.StatementRequest;
 import ru.alxndrzuev.iso20022.documents.statements.model.StatementRequestMessage;
-import ru.alxndrzuev.iso20022.gateways.ab.AbTestGateway;
 import ru.alxndrzuev.iso20022.ui.BasePage;
 import ru.alxndrzuev.iso20022.utils.DateUtils;
 import ru.alxndrzuev.iso20022.utils.XmlFormatter;
@@ -32,19 +30,8 @@ import java.util.UUID;
 @Route("statement/new")
 @Slf4j
 public class NewStatementPage extends BasePage {
-    private static final String SIGN_ELEMENT_XPATH = "/*[local-name()='Document' and namespace-uri()='urn:iso:std:iso:20022:tech:xsd:camt.060.001.03']" +
-            "/*[local-name()='AcctRptgReq' and namespace-uri()='urn:iso:std:iso:20022:tech:xsd:camt.060.001.03']" +
-            "/*[local-name()='SplmtryData' and namespace-uri()='urn:iso:std:iso:20022:tech:xsd:camt.060.001.03']" +
-            "/*[local-name()='Envlp' and namespace-uri()='urn:iso:std:iso:20022:tech:xsd:camt.060.001.03']";
-
     @Autowired
-    private StatementRequestMessageBuilder statementRequestMessageBuilder;
-
-    @Autowired
-    private CryptoService cryptoService;
-
-    @Autowired
-    private AbTestGateway gateway;
+    private StatementsService statementsService;
 
     @Autowired
     private XmlFormatter xmlFormatter;
@@ -113,26 +100,19 @@ public class NewStatementPage extends BasePage {
         super.addListeners();
 
         generateRequest.addClickListener((ComponentEventListener<ClickEvent<Button>>) event -> {
-            StatementRequestMessage requestMessage = getRequestMessage();
-            String requestString = statementRequestMessageBuilder.buildRequest(requestMessage);
-            requestTextArea.setValue(requestString);
+            requestTextArea.setValue(statementsService.generateRequest(getRequestMessage(), false));
         });
 
         signRequest.addClickListener((ComponentEventListener<ClickEvent<Button>>) event -> {
-            StatementRequestMessage requestMessage = getRequestMessage();
-            String requestString = statementRequestMessageBuilder.buildRequest(requestMessage);
-            String signedRequestString = cryptoService.signRequest(requestString, SIGN_ELEMENT_XPATH);
-            requestTextArea.setValue(signedRequestString);
+            requestTextArea.setValue(statementsService.generateRequest(getRequestMessage(), true));
         });
 
         sendRequest.addClickListener((ComponentEventListener<ClickEvent<Button>>) event -> {
             StatementRequestMessage requestMessage = getRequestMessage();
-
-            String requestString = statementRequestMessageBuilder.buildRequest(requestMessage);
-            String signedRequestString = cryptoService.signRequest(requestString, SIGN_ELEMENT_XPATH);
-            requestTextArea.setValue(signedRequestString);
+            String request = statementsService.generateRequest(getRequestMessage(), true);
+            requestTextArea.setValue(request);
             try {
-                ResponseEntity<String> responseEntity = gateway.getStatement(signedRequestString);
+                ResponseEntity<String> responseEntity = statementsService.sendRequest(request);
                 responseTextArea.setValue(generateResult(responseEntity.getStatusCode().value(), responseEntity.getHeaders().entrySet(), responseEntity.getBody()));
                 if (HttpStatus.OK.equals(responseEntity.getStatusCode())) {
                     new Thread(() -> updateStatementResult(requestMessage.getMessageId(), getUI().get())).start();
@@ -147,7 +127,7 @@ public class NewStatementPage extends BasePage {
     private void updateStatementResult(String messageId, UI ui) {
         for (int i = 0; i < STATEMENT_UPDATE_RETRY_COUNT; i++) {
             try {
-                ResponseEntity<String> responseEntity = gateway.getStatementResult(messageId);
+                ResponseEntity<String> responseEntity = statementsService.getStatementResult(messageId);
                 if (responseEntity.getStatusCode().equals(HttpStatus.OK)) {
                     ui.access(() -> {
                         statementTextArea.setValue(generateResult(responseEntity.getStatusCode().value(), responseEntity.getHeaders().entrySet(), xmlFormatter.format(responseEntity.getBody())));

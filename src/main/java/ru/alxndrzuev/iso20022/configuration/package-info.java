@@ -1,1 +1,0 @@
-package ru.alxndrzuev.iso20022.configuration;

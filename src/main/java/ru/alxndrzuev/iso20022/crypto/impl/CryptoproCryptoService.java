@@ -3,6 +3,7 @@ package ru.alxndrzuev.iso20022.crypto.impl;
 import com.google.common.collect.Lists;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.xml.security.signature.XMLSignature;
 import org.apache.xml.security.transforms.Transforms;
 import org.apache.xml.security.transforms.params.XPath2FilterContainer;
@@ -30,9 +31,9 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
 import java.io.ByteArrayOutputStream;
 import java.io.StringReader;
-import java.security.Key;
 import java.security.KeyStore;
 import java.security.PrivateKey;
+import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import java.util.Enumeration;
@@ -71,9 +72,8 @@ public class CryptoproCryptoService implements CryptoService {
         Element signatureNode = doc.createElement("SngtrSt");
         link.item(0).appendChild(signatureNode);
 
-        for (int i = 0; i < applicationProperties.getCertificateAliases().size(); i++) {
-            String certificateAlias = applicationProperties.getCertificateAliases().get(i);
-            sign(certificateAlias, doc, signatureNode);
+        for (ru.alxndrzuev.iso20022.model.Certificate certificate : applicationProperties.getCertificates()) {
+            sign(certificate.getId(), certificate.getPassword(), doc, signatureNode);
         }
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -85,8 +85,8 @@ public class CryptoproCryptoService implements CryptoService {
     }
 
     @SneakyThrows
-    private XMLSignature sign(String alias, Document doc, Element element) {
-        PrivateKey privateKey = (PrivateKey) ks.getKey(alias, null);
+    private XMLSignature sign(String alias, String password, Document doc, Element element) {
+        PrivateKey privateKey = (PrivateKey) ks.getKey(alias, StringUtils.isNoneBlank(password) ? password.toCharArray() : null);
         X509Certificate cert = (X509Certificate) ks.getCertificate(alias);
 
         return sign(privateKey, cert, doc, element);
@@ -126,11 +126,15 @@ public class CryptoproCryptoService implements CryptoService {
             try {
                 String alias = aliases.nextElement();
                 Certificate certificate = ks.getCertificate(alias);
-                Key key = ks.getKey(alias, null);
-                if (certificate != null && key != null) {
+                if (certificate != null) {
                     ru.alxndrzuev.iso20022.model.Certificate cert = CertificateUtils.parseCertificate(certificate.getEncoded());
                     cert.setId(alias);
                     certificates.add(cert);
+                    try {
+                        ks.getKey(alias, null);
+                    } catch (UnrecoverableKeyException e) {
+                        cert.setNeedPassword(true);
+                    }
                 }
             } catch (Exception e) {
                 log.warn("Can not get certificates. Exception:", e.getCause());

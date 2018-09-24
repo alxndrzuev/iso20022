@@ -15,10 +15,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.converter.StringHttpMessageConverter;
-import org.springframework.stereotype.Service;
 import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
 import ru.alxndrzuev.iso20022.configuration.properties.ApplicationProperties;
+import ru.alxndrzuev.iso20022.documents.payments.PaymentsGateway;
+import ru.alxndrzuev.iso20022.documents.statements.StatementsGateway;
 
 import javax.annotation.PostConstruct;
 import javax.net.ssl.SSLContext;
@@ -27,9 +28,8 @@ import javax.net.ssl.X509TrustManager;
 import java.nio.charset.Charset;
 import java.security.cert.X509Certificate;
 
-@Service
 @Slf4j
-public class AbTestGateway {
+public class AbTestGateway implements PaymentsGateway, StatementsGateway {
 
     @Autowired
     private ApplicationProperties applicationProperties;
@@ -60,6 +60,7 @@ public class AbTestGateway {
         restTemplate.setRequestFactory(requestFactory);
     }
 
+    @Override
     public ResponseEntity<String> getStatement(String body) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_XML);
@@ -68,6 +69,7 @@ public class AbTestGateway {
         return restTemplate.exchange(applicationProperties.getBaseUrl() + "/Statements", HttpMethod.POST, request, String.class);
     }
 
+    @Override
     public ResponseEntity<String> getStatementResult(String messageId) {
         HttpHeaders headers = new HttpHeaders();
         addAuthorizationHeader(headers);
@@ -75,6 +77,7 @@ public class AbTestGateway {
         return restTemplate.exchange(applicationProperties.getBaseUrl() + "/Statements/" + messageId, HttpMethod.GET, request, String.class);
     }
 
+    @Override
     public ResponseEntity<String> createPayment(String body) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_XML);
@@ -83,6 +86,7 @@ public class AbTestGateway {
         return restTemplate.exchange(applicationProperties.getBaseUrl() + "/Payments", HttpMethod.POST, request, String.class);
     }
 
+    @Override
     public ResponseEntity<String> getPaymentStatus(String messageId) {
         HttpHeaders headers = new HttpHeaders();
         addAuthorizationHeader(headers);

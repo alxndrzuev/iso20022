@@ -16,34 +16,20 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import ru.alxndrzuev.iso20022.crypto.CryptoService;
-import ru.alxndrzuev.iso20022.documents.payments.builder.PaymentRequestMessageBuilder;
 import ru.alxndrzuev.iso20022.documents.payments.model.PaymentMessage;
-import ru.alxndrzuev.iso20022.gateways.ab.AbTestGateway;
+import ru.alxndrzuev.iso20022.documents.payments.PaymentsService;
 import ru.alxndrzuev.iso20022.ui.BasePage;
 import ru.alxndrzuev.iso20022.utils.XmlFormatter;
 
 import java.util.UUID;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Route("payment/new")
 @Slf4j
 @Push
 public class NewPaymentPage extends BasePage {
-    private static final String SIGN_ELEMENT_XPATH = "/*[local-name()='Document' and namespace-uri()='urn:iso:std:iso:20022:tech:xsd:pain.001.001.06']" +
-            "/*[local-name()='CstmrCdtTrfInitn' and namespace-uri()='urn:iso:std:iso:20022:tech:xsd:pain.001.001.06']" +
-            "/*[local-name()='SplmtryData' and namespace-uri()='urn:iso:std:iso:20022:tech:xsd:pain.001.001.06']" +
-            "/*[local-name()='Envlp' and namespace-uri()='urn:iso:std:iso:20022:tech:xsd:pain.001.001.06']";
 
     @Autowired
-    private PaymentRequestMessageBuilder paymentRequestMessageBuilder;
-
-    @Autowired
-    private CryptoService cryptoService;
-
-    @Autowired
-    private AbTestGateway gateway;
+    private PaymentsService paymentsService;
 
     @Autowired
     private XmlFormatter xmlFormatter;
@@ -104,26 +90,19 @@ public class NewPaymentPage extends BasePage {
         super.addListeners();
 
         generateRequest.addClickListener((ComponentEventListener<ClickEvent<Button>>) event -> {
-            PaymentMessage requestMessage = getPaymentMessage();
-            String requestString = paymentRequestMessageBuilder.buildRequest(requestMessage);
-            requestTextArea.setValue(requestString);
+            requestTextArea.setValue(paymentsService.generateRequest(getPaymentMessage(), false));
         });
 
         signRequest.addClickListener((ComponentEventListener<ClickEvent<Button>>) event -> {
-            PaymentMessage requestMessage = getPaymentMessage();
-            String requestString = paymentRequestMessageBuilder.buildRequest(requestMessage);
-            String signedRequestString = cryptoService.signRequest(requestString, SIGN_ELEMENT_XPATH);
-            requestTextArea.setValue(signedRequestString);
+            requestTextArea.setValue(paymentsService.generateRequest(getPaymentMessage(), true));
         });
 
         sendRequest.addClickListener((ComponentEventListener<ClickEvent<Button>>) event -> {
             PaymentMessage requestMessage = getPaymentMessage();
 
-            String requestString = paymentRequestMessageBuilder.buildRequest(requestMessage);
-            String signedRequestString = cryptoService.signRequest(requestString, SIGN_ELEMENT_XPATH);
-            requestTextArea.setValue(signedRequestString);
+            requestTextArea.setValue(paymentsService.generateRequest(getPaymentMessage(), true));
             try {
-                ResponseEntity<String> responseEntity = gateway.createPayment(signedRequestString);
+                ResponseEntity<String> responseEntity = paymentsService.sendRequest(requestTextArea.getValue());
                 if (HttpStatus.OK.equals(responseEntity.getStatusCode())) {
                     responseTextArea.setValue(generateResult(responseEntity.getStatusCode().value(), responseEntity.getHeaders().entrySet(), xmlFormatter.format(responseEntity.getBody())));
                     new Thread(() -> updatePaymentsResult(requestMessage.getMessageId(), getUI().get())).start();
@@ -140,7 +119,7 @@ public class NewPaymentPage extends BasePage {
     private void updatePaymentsResult(String messageId, UI ui) {
         for (int i = 0; i < PAYMENT_STATUS_UPDATE_RETRY_COUNT; i++) {
             try {
-                ResponseEntity<String> responseEntity = gateway.getPaymentStatus(messageId);
+                ResponseEntity<String> responseEntity = paymentsService.getPaymentStatus(messageId, null);
                 if (responseEntity.getStatusCode().equals(HttpStatus.OK)) {
                     ui.access(() -> {
                         paymentStatusesArea.setValue(generateResult(responseEntity.getStatusCode().value(), responseEntity.getHeaders().entrySet(), xmlFormatter.format(responseEntity.getBody())));

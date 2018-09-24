@@ -9,6 +9,10 @@ public enum Dialect {
         this.caption = caption;
     }
 
+    public String getCaption() {
+        return caption;
+    }
+
     @Override
     public String toString() {
         return caption;

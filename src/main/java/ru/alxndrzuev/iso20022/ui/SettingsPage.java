@@ -1,12 +1,17 @@
 package ru.alxndrzuev.iso20022.ui;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.ComponentEventListener;
+import com.vaadin.flow.component.HasValue;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -25,8 +30,6 @@ import ru.alxndrzuev.iso20022.utils.PropertiesPersister;
 
 import javax.annotation.PostConstruct;
 import java.util.List;
-import java.util.Properties;
-import java.util.stream.Collectors;
 
 @Push
 @Route("settings")
@@ -82,6 +85,24 @@ public class SettingsPage extends BasePage {
         cerificateGrid.setSelectionMode(Grid.SelectionMode.MULTI);
         Grid.Column ownerColumn = cerificateGrid.addColumn((ValueProvider<Certificate, String>) certificate -> certificate.getSubjectName() != null ? certificate.getSubjectName() : "").setHeader("Owner");
         Grid.Column organizationNameColumn = cerificateGrid.addColumn((ValueProvider<Certificate, String>) certificate -> certificate.getOrganizationName() != null ? certificate.getOrganizationName() : "").setHeader("Organization name");
+        Grid.Column passwordColumn = cerificateGrid.addComponentColumn(certificate -> {
+            if (certificate.isNeedPassword()) {
+                PasswordField pf = new PasswordField();
+                if (certificate.getPassword() != null) {
+                    pf.setValue(certificate.getPassword());
+                }
+                pf.setWidth("90%");
+                pf.addValueChangeListener(new HasValue.ValueChangeListener<AbstractField.ComponentValueChangeEvent<PasswordField, String>>() {
+                    @Override
+                    public void valueChanged(AbstractField.ComponentValueChangeEvent<PasswordField, String> event) {
+                        certificate.setPassword(pf.getValue());
+                    }
+                });
+                return pf;
+            } else {
+                return new Label("Password is not needed");
+            }
+        }).setHeader("Password");
         organizationNameColumn.setFlexGrow(5);
         fl.add(cerificateGrid);
         return securityLayout;
@@ -130,6 +151,15 @@ public class SettingsPage extends BasePage {
             cerificateGrid.setHeightByRows(true);
             cerificateGrid.setHeight(String.valueOf(certificates.size()));
         }
+        cerificateGrid.asMultiSelect().setValue(Sets.newHashSet(applicationProperties.getCertificates()));
+        for (Certificate selectedCertificate : cerificateGrid.getSelectedItems()) {
+            for (Certificate certificate : applicationProperties.getCertificates()) {
+                if (selectedCertificate.equals(certificate)) {
+                    selectedCertificate.setPassword(certificate.getPassword());
+                }
+            }
+        }
+
         if (applicationProperties.getLogin() != null) {
             loginTextField.setValue(applicationProperties.getLogin());
         }
@@ -140,25 +170,15 @@ public class SettingsPage extends BasePage {
             baseUrlTextField.setValue(applicationProperties.getBaseUrl());
         }
         dialectComboBox.setValue(applicationProperties.getDialect());
-        cerificateGrid.asMultiSelect().setValue(certificates.stream()
-                .filter(certificate -> applicationProperties.getCertificateAliases().contains(certificate.getId()))
-                .collect(Collectors.toSet()));
 
         save.addClickListener((ComponentEventListener<ClickEvent<Button>>) event -> {
             try {
-                Properties properties = new Properties();
-                if (cerificateGrid.getSelectedItems().size() > 0) {
-                    properties.setProperty(PropertiesPersister.CERTIFICATE_ALIASES_PROPERTY, cerificateGrid.getSelectedItems().stream()
-                            .map(certificate -> certificate.getId())
-                            .collect(Collectors.joining(",")));
-                }
-                properties.setProperty(PropertiesPersister.LOGIN_PROPERTY, loginTextField.getValue());
-                properties.setProperty(PropertiesPersister.PASSWORD_PROPERTY, passwordTextField.getValue());
-                properties.setProperty(PropertiesPersister.BASE_URL_PROPERTY, baseUrlTextField.getValue());
-                if (dialectComboBox.getValue() != null) {
-                    properties.setProperty(PropertiesPersister.DIALECT_PROPERTY, dialectComboBox.getValue().name());
-                }
-                propertiesPersister.persist(properties);
+                applicationProperties.setCertificates(Lists.newArrayList(cerificateGrid.getSelectedItems()));
+                applicationProperties.setLogin(loginTextField.getValue());
+                applicationProperties.setPassword(passwordTextField.getValue());
+                applicationProperties.setBaseUrl(baseUrlTextField.getValue());
+                applicationProperties.setDialect(dialectComboBox.getValue());
+                propertiesPersister.persist(new ApplicationProperties(applicationProperties));
                 Notification.show("Configurations successfully saved", 3000, Notification.Position.TOP_END);
             } catch (Exception e) {
                 log.error("Could not save configuration. Exception:", e);

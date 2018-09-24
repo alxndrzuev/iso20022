@@ -51,6 +51,7 @@ dependencies {
     compile group: 'commons-io', name: 'commons-io', version: '2.6'
     compile group: 'org.apache.santuario', name: 'xmlsec', version: '1.5.8'
     compile group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.6'
+    compile group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-yaml', version: '2.9.2'
 
     //Согласно ЖТЯИ.00091-01 33 01. Руководство программиста.pdf
     //Библиотека JCPxml.jar должна находиться вместе с библиотекой xmlsec.jar

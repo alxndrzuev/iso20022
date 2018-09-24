@@ -1,4 +1,4 @@
-package ru.alxndrzuev.iso20022.documents.payments.builder;
+package ru.alxndrzuev.iso20022.documents.payments;
 
 import iso20022.payments.AccountIdentification4Choice;
 import iso20022.payments.AccountSchemeName1Choice;
@@ -55,7 +55,7 @@ import java.util.Date;
 
 @Service
 @Slf4j
-public class PaymentRequestMessageBuilder {
+public class PaymentsRequestMessageBuilder {
     private JAXBContext jaxbContext;
 
     @PostConstruct

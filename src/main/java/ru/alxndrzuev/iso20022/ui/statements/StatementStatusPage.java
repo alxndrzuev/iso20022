@@ -16,7 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import ru.alxndrzuev.iso20022.gateways.ab.AbTestGateway;
+import ru.alxndrzuev.iso20022.documents.statements.StatementsService;
 import ru.alxndrzuev.iso20022.ui.BasePage;
 import ru.alxndrzuev.iso20022.utils.XmlFormatter;
 
@@ -28,15 +28,13 @@ public class StatementStatusPage extends BasePage {
     private static final int STATEMENT_UPDATE_RETRY_COUNT = 10;
 
     @Autowired
-    private AbTestGateway gateway;
+    private StatementsService statementsService;
 
     @Autowired
     private XmlFormatter xmlFormatter;
 
     private TextField messageIdTextField;
-
     private Button sendRequest;
-
     private TextArea statementTextArea;
 
     public StatementStatusPage() {
@@ -79,7 +77,7 @@ public class StatementStatusPage extends BasePage {
     private void updateStatementResult(String messageId, UI ui) {
         for (int i = 0; i < STATEMENT_UPDATE_RETRY_COUNT; i++) {
             try {
-                ResponseEntity<String> responseEntity = gateway.getStatementResult(messageId);
+                ResponseEntity<String> responseEntity = statementsService.getStatementResult(messageId);
                 if (responseEntity.getStatusCode().equals(HttpStatus.OK)) {
                     ui.access(() -> {
                         statementTextArea.setValue(generateResult(responseEntity.getStatusCode().value(), responseEntity.getHeaders().entrySet(), xmlFormatter.format(responseEntity.getBody())));
@@ -95,6 +93,5 @@ public class StatementStatusPage extends BasePage {
             }
             Thread.sleep(STATEMENT_UPDATE_RATE);
         }
-
     }
 }
