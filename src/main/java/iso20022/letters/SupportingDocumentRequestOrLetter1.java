@@ -13,9 +13,9 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 /**
  * <p>Java class for SupportingDocumentRequestOrLetter1 complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="SupportingDocumentRequestOrLetter1">
  *   &lt;complexContent>
@@ -38,8 +38,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
+ *
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "SupportingDocumentRequestOrLetter1", namespace = "urn:iso:std:iso:20022:tech:xsd:auth.026.001.01", propOrder = {
@@ -73,7 +73,9 @@ public class SupportingDocumentRequestOrLetter1 {
     protected String sbjt;
     @XmlElement(name = "Tp", namespace = "urn:iso:std:iso:20022:tech:xsd:auth.026.001.01", required = true)
     @XmlSchemaType(name = "string")
-    protected SupportDocumentType1Code tp;
+    //HACK
+    //Change tp from SupportDocumentType1Code to String
+    protected String tp;
     @XmlElement(name = "Desc", namespace = "urn:iso:std:iso:20022:tech:xsd:auth.026.001.01")
     protected String desc;
     @XmlElement(name = "RspnReqrd", namespace = "urn:iso:std:iso:20022:tech:xsd:auth.026.001.01")
@@ -88,11 +90,11 @@ public class SupportingDocumentRequestOrLetter1 {
 
     /**
      * Gets the value of the reqOrLttrId property.
-     * 
+     *
      * @return
      *     possible object is
      *     {@link String }
-     *     
+     *
      */
     public String getReqOrLttrId() {
         return reqOrLttrId;
@@ -100,11 +102,11 @@ public class SupportingDocumentRequestOrLetter1 {
 
     /**
      * Sets the value of the reqOrLttrId property.
-     * 
+     *
      * @param value
      *     allowed object is
      *     {@link String }
-     *     
+     *
      */
     public void setReqOrLttrId(String value) {
         this.reqOrLttrId = value;
@@ -112,11 +114,11 @@ public class SupportingDocumentRequestOrLetter1 {
 
     /**
      * Gets the value of the dt property.
-     * 
+     *
      * @return
      *     possible object is
      *     {@link XMLGregorianCalendar }
-     *     
+     *
      */
     public XMLGregorianCalendar getDt() {
         return dt;
@@ -124,11 +126,11 @@ public class SupportingDocumentRequestOrLetter1 {
 
     /**
      * Sets the value of the dt property.
-     * 
+     *
      * @param value
      *     allowed object is
      *     {@link XMLGregorianCalendar }
-     *     
+     *
      */
     public void setDt(XMLGregorianCalendar value) {
         this.dt = value;
@@ -136,11 +138,11 @@ public class SupportingDocumentRequestOrLetter1 {
 
     /**
      * Gets the value of the sndr property.
-     * 
+     *
      * @return
      *     possible object is
      *     {@link Party28Choice }
-     *     
+     *
      */
     public Party28Choice getSndr() {
         return sndr;
@@ -148,11 +150,11 @@ public class SupportingDocumentRequestOrLetter1 {
 
     /**
      * Sets the value of the sndr property.
-     * 
+     *
      * @param value
      *     allowed object is
      *     {@link Party28Choice }
-     *     
+     *
      */
     public void setSndr(Party28Choice value) {
         this.sndr = value;
@@ -160,11 +162,11 @@ public class SupportingDocumentRequestOrLetter1 {
 
     /**
      * Gets the value of the rcvr property.
-     * 
+     *
      * @return
      *     possible object is
      *     {@link Party28Choice }
-     *     
+     *
      */
     public Party28Choice getRcvr() {
         return rcvr;
@@ -172,11 +174,11 @@ public class SupportingDocumentRequestOrLetter1 {
 
     /**
      * Sets the value of the rcvr property.
-     * 
+     *
      * @param value
      *     allowed object is
      *     {@link Party28Choice }
-     *     
+     *
      */
     public void setRcvr(Party28Choice value) {
         this.rcvr = value;
@@ -184,25 +186,25 @@ public class SupportingDocumentRequestOrLetter1 {
 
     /**
      * Gets the value of the orgnlRefs property.
-     * 
+     *
      * <p>
      * This accessor method returns a reference to the live list,
      * not a snapshot. Therefore any modification you make to the
      * returned list will be present inside the JAXB object.
      * This is why there is not a <CODE>set</CODE> method for the orgnlRefs property.
-     * 
+     *
      * <p>
      * For example, to add a new item, do as follows:
      * <pre>
      *    getOrgnlRefs().add(newItem);
      * </pre>
-     * 
-     * 
+     *
+     *
      * <p>
      * Objects of the following type(s) are allowed in the list
      * {@link OriginalMessage2 }
-     * 
-     * 
+     *
+     *
      */
     public List<OriginalMessage2> getOrgnlRefs() {
         if (orgnlRefs == null) {
@@ -213,11 +215,11 @@ public class SupportingDocumentRequestOrLetter1 {
 
     /**
      * Gets the value of the sbjt property.
-     * 
+     *
      * @return
      *     possible object is
      *     {@link String }
-     *     
+     *
      */
     public String getSbjt() {
         return sbjt;
@@ -225,11 +227,11 @@ public class SupportingDocumentRequestOrLetter1 {
 
     /**
      * Sets the value of the sbjt property.
-     * 
+     *
      * @param value
      *     allowed object is
      *     {@link String }
-     *     
+     *
      */
     public void setSbjt(String value) {
         this.sbjt = value;
@@ -237,35 +239,35 @@ public class SupportingDocumentRequestOrLetter1 {
 
     /**
      * Gets the value of the tp property.
-     * 
+     *
      * @return
      *     possible object is
      *     {@link SupportDocumentType1Code }
-     *     
+     *
      */
-    public SupportDocumentType1Code getTp() {
+    public String getTp() {
         return tp;
     }
 
     /**
      * Sets the value of the tp property.
-     * 
+     *
      * @param value
      *     allowed object is
      *     {@link SupportDocumentType1Code }
-     *     
+     *
      */
-    public void setTp(SupportDocumentType1Code value) {
+    public void setTp(String value) {
         this.tp = value;
     }
 
     /**
      * Gets the value of the desc property.
-     * 
+     *
      * @return
      *     possible object is
      *     {@link String }
-     *     
+     *
      */
     public String getDesc() {
         return desc;
@@ -273,11 +275,11 @@ public class SupportingDocumentRequestOrLetter1 {
 
     /**
      * Sets the value of the desc property.
-     * 
+     *
      * @param value
      *     allowed object is
      *     {@link String }
-     *     
+     *
      */
     public void setDesc(String value) {
         this.desc = value;
@@ -285,7 +287,7 @@ public class SupportingDocumentRequestOrLetter1 {
 
     /**
      * Gets the value of the rspnReqrd property.
-     * 
+     *
      */
     public boolean isRspnReqrd() {
         return rspnReqrd;
@@ -293,7 +295,7 @@ public class SupportingDocumentRequestOrLetter1 {
 
     /**
      * Sets the value of the rspnReqrd property.
-     * 
+     *
      */
     public void setRspnReqrd(boolean value) {
         this.rspnReqrd = value;
@@ -301,11 +303,11 @@ public class SupportingDocumentRequestOrLetter1 {
 
     /**
      * Gets the value of the dueDt property.
-     * 
+     *
      * @return
      *     possible object is
      *     {@link XMLGregorianCalendar }
-     *     
+     *
      */
     public XMLGregorianCalendar getDueDt() {
         return dueDt;
@@ -313,11 +315,11 @@ public class SupportingDocumentRequestOrLetter1 {
 
     /**
      * Sets the value of the dueDt property.
-     * 
+     *
      * @param value
      *     allowed object is
      *     {@link XMLGregorianCalendar }
-     *     
+     *
      */
     public void setDueDt(XMLGregorianCalendar value) {
         this.dueDt = value;
@@ -325,25 +327,25 @@ public class SupportingDocumentRequestOrLetter1 {
 
     /**
      * Gets the value of the attchmnt property.
-     * 
+     *
      * <p>
      * This accessor method returns a reference to the live list,
      * not a snapshot. Therefore any modification you make to the
      * returned list will be present inside the JAXB object.
      * This is why there is not a <CODE>set</CODE> method for the attchmnt property.
-     * 
+     *
      * <p>
      * For example, to add a new item, do as follows:
      * <pre>
      *    getAttchmnt().add(newItem);
      * </pre>
-     * 
-     * 
+     *
+     *
      * <p>
      * Objects of the following type(s) are allowed in the list
      * {@link DocumentGeneralInformation3 }
-     * 
-     * 
+     *
+     *
      */
     public List<DocumentGeneralInformation3> getAttchmnt() {
         if (attchmnt == null) {
@@ -354,25 +356,25 @@ public class SupportingDocumentRequestOrLetter1 {
 
     /**
      * Gets the value of the splmtryData property.
-     * 
+     *
      * <p>
      * This accessor method returns a reference to the live list,
      * not a snapshot. Therefore any modification you make to the
      * returned list will be present inside the JAXB object.
      * This is why there is not a <CODE>set</CODE> method for the splmtryData property.
-     * 
+     *
      * <p>
      * For example, to add a new item, do as follows:
      * <pre>
      *    getSplmtryData().add(newItem);
      * </pre>
-     * 
-     * 
+     *
+     *
      * <p>
      * Objects of the following type(s) are allowed in the list
      * {@link SupplementaryData1 }
-     * 
-     * 
+     *
+     *
      */
     public List<SupplementaryData1> getSplmtryData() {
         if (splmtryData == null) {

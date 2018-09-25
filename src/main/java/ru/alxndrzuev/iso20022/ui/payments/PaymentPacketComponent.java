@@ -79,7 +79,6 @@ public class PaymentPacketComponent extends VerticalLayout {
                     .mapToInt(PaymentInstructionComponent::getInstructionId)
                     .max().orElse(0) + 1;
             paymentInstructionComponents.put(instructionId, new PaymentInstructionComponent(messageId, instructionId, paymentInstructionComponents));
-//            paymentInstructionComponents.add(new PaymentInstructionComponent(RandomUtils.nextInt(0, 1000000), paymentInstructionComponents));
             repaintPaymentsLayout();
         });
 

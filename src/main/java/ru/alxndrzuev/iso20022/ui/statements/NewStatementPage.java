@@ -27,7 +27,7 @@ import ru.alxndrzuev.iso20022.utils.XmlFormatter;
 import java.util.UUID;
 
 @Push
-@Route("statement/new")
+@Route("statements/new")
 @Slf4j
 public class NewStatementPage extends BasePage {
     @Autowired

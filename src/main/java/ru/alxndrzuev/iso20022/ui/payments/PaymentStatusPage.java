@@ -20,7 +20,7 @@ import ru.alxndrzuev.iso20022.documents.payments.PaymentsGateway;
 import ru.alxndrzuev.iso20022.ui.BasePage;
 import ru.alxndrzuev.iso20022.utils.XmlFormatter;
 
-@Route("payment/status")
+@Route("payments/status")
 @Slf4j
 @Push
 public class PaymentStatusPage extends BasePage {

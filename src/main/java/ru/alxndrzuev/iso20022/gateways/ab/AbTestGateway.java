@@ -18,6 +18,7 @@ import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
 import ru.alxndrzuev.iso20022.configuration.properties.ApplicationProperties;
+import ru.alxndrzuev.iso20022.documents.letters.LettersGateway;
 import ru.alxndrzuev.iso20022.documents.payments.PaymentsGateway;
 import ru.alxndrzuev.iso20022.documents.statements.StatementsGateway;
 
@@ -29,7 +30,7 @@ import java.nio.charset.Charset;
 import java.security.cert.X509Certificate;
 
 @Slf4j
-public class AbTestGateway implements PaymentsGateway, StatementsGateway {
+public class AbTestGateway implements PaymentsGateway, StatementsGateway, LettersGateway {
 
     @Autowired
     private ApplicationProperties applicationProperties;
@@ -92,6 +93,23 @@ public class AbTestGateway implements PaymentsGateway, StatementsGateway {
         addAuthorizationHeader(headers);
         HttpEntity<String> request = new HttpEntity<>(headers);
         return restTemplate.exchange(applicationProperties.getBaseUrl() + "/Payments/" + messageId, HttpMethod.GET, request, String.class);
+    }
+
+    @Override
+    public ResponseEntity<String> createLetter(String body) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_XML);
+        addAuthorizationHeader(headers);
+        HttpEntity<String> request = new HttpEntity<>(body, headers);
+        return restTemplate.exchange(applicationProperties.getBaseUrl() + "/Letters", HttpMethod.POST, request, String.class);
+    }
+
+    @Override
+    public ResponseEntity<String> getLetterStatus(String messageId) {
+        HttpHeaders headers = new HttpHeaders();
+        addAuthorizationHeader(headers);
+        HttpEntity<String> request = new HttpEntity<>(headers);
+        return restTemplate.exchange(applicationProperties.getBaseUrl() + "/Letters/" + messageId, HttpMethod.GET, request, String.class);
     }
 
     private void addAuthorizationHeader(HttpHeaders headers) {

@@ -21,7 +21,7 @@ import ru.alxndrzuev.iso20022.ui.BasePage;
 import ru.alxndrzuev.iso20022.utils.XmlFormatter;
 
 @Push
-@Route("statement/status")
+@Route("statements/status")
 @Slf4j
 public class StatementStatusPage extends BasePage {
     private static final long STATEMENT_UPDATE_RATE = 10000l;

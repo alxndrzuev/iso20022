@@ -23,7 +23,7 @@ import ru.alxndrzuev.iso20022.utils.XmlFormatter;
 
 import java.util.UUID;
 
-@Route("payment/new")
+@Route("payments/new")
 @Slf4j
 @Push
 public class NewPaymentPage extends BasePage {
