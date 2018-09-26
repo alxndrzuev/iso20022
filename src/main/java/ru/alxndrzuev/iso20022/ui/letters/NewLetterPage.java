@@ -12,9 +12,11 @@ import com.vaadin.flow.component.page.Push;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.component.upload.receivers.MultiFileMemoryBuffer;
 import com.vaadin.flow.router.Route;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -146,6 +148,7 @@ public class NewLetterPage extends BasePage {
                     ui.access(() -> {
                         letterStatusesArea.setValue(generateResult(responseEntity.getStatusCode().value(), responseEntity.getHeaders().entrySet(), responseEntity.getBody()));
                     });
+                    sendAttachments();
                 } else {
                     ui.access(() -> {
                         letterStatusesArea.setValue(generateResult(responseEntity.getStatusCode().value(), responseEntity.getHeaders().entrySet(), responseEntity.getBody()));
@@ -156,7 +159,6 @@ public class NewLetterPage extends BasePage {
             }
             Thread.sleep(LETTER_STATUS_UPDATE_RATE);
         }
-
     }
 
     private LetterMessage getLetterMessage() {
@@ -174,6 +176,20 @@ public class NewLetterPage extends BasePage {
         lettersLayout.removeAll();
         for (LetterComponent letterComponent : letterComponents.values()) {
             lettersLayout.add(letterComponent);
+        }
+    }
+
+    private void sendAttachments() {
+        for (LetterComponent letterComponent : letterComponents.values()) {
+            try {
+                MultiFileMemoryBuffer buffer = letterComponent.getFiles();
+                for (String fileName : buffer.getFiles()) {
+                    ResponseEntity<String> attachmentResponse = lettersService.addAttachment(fileName, IOUtils.toByteArray(buffer.getInputStream(fileName)), messageIdTextField.getValue() + "_" + letterComponent.getLetterId());
+                    log.info("Attachment response:{}", attachmentResponse.toString());
+                }
+            } catch (Exception e) {
+                log.error("Cannot send attachments. Exception:", e);
+            }
         }
     }
 }

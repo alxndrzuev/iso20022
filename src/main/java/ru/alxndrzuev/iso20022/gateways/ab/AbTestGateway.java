@@ -7,6 +7,7 @@ import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -15,6 +16,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.converter.StringHttpMessageConverter;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
 import ru.alxndrzuev.iso20022.configuration.properties.ApplicationProperties;
@@ -110,6 +113,24 @@ public class AbTestGateway implements PaymentsGateway, StatementsGateway, Letter
         addAuthorizationHeader(headers);
         HttpEntity<String> request = new HttpEntity<>(headers);
         return restTemplate.exchange(applicationProperties.getBaseUrl() + "/Letters/" + messageId, HttpMethod.GET, request, String.class);
+    }
+
+    @Override
+    public ResponseEntity<String> addAttachment(String name, byte[] data, String letterId) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+        addAuthorizationHeader(headers);
+        MultiValueMap<String, Object> bodyMap = new LinkedMultiValueMap<>();
+        bodyMap.add("attachment", new ByteArrayResource(data) {
+            @Override
+            public String getFilename() {
+                return name;
+            }
+        });
+        HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<>(bodyMap, headers);
+
+        log.info(request.toString());
+        return restTemplate.exchange(applicationProperties.getBaseUrl() + "/Letters/OutLetters/Files/" + letterId, HttpMethod.POST, request, String.class);
     }
 
     private void addAuthorizationHeader(HttpHeaders headers) {

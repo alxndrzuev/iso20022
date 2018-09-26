@@ -9,6 +9,8 @@ import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.component.upload.Upload;
+import com.vaadin.flow.component.upload.receivers.MultiFileMemoryBuffer;
 import ru.alxndrzuev.iso20022.documents.letters.model.Letter;
 
 import java.util.Map;
@@ -28,6 +30,7 @@ public class LetterComponent extends Div {
     private Button removeInstructionButton;
 
     private int letterId;
+    private MultiFileMemoryBuffer buffer;
 
     public LetterComponent(String messageId, int letterId, Map components) {
         this.letterId = letterId;
@@ -71,6 +74,10 @@ public class LetterComponent extends Div {
             setVisible(false);
             components.remove(letterId);
         });
+
+        buffer = new MultiFileMemoryBuffer();
+        Upload upload = new Upload(buffer);
+
         fieldsLayout.addFormItem(letterIdTextField, label);
         fieldsLayout.add(removeInstructionButton);
         fieldsLayout.addFormItem(senderNameTextField, "Sender name");
@@ -82,6 +89,8 @@ public class LetterComponent extends Div {
         add(fieldsLayout);
         add(subjectTextField);
         add(bodyTextArea);
+        add(upload);
+
     }
 
     public Letter buildLetter() {
@@ -100,5 +109,9 @@ public class LetterComponent extends Div {
 
     public int getLetterId() {
         return letterId;
+    }
+
+    public MultiFileMemoryBuffer getFiles() {
+        return buffer;
     }
 }

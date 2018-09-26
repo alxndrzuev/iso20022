@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import ru.alxndrzuev.iso20022.crypto.CryptoService;
-import ru.alxndrzuev.iso20022.documents.letters.model.Letter;
 import ru.alxndrzuev.iso20022.documents.letters.model.LetterMessage;
 
 import javax.annotation.PostConstruct;
@@ -27,6 +26,11 @@ public class LettersService {
     @Autowired
     private LettersGateway gateway;
 
+    @PostConstruct
+    public void init() {
+        log.info(addAttachment("test", "test".getBytes(), "20d-4111-9dec-667d53df1403_1").toString());
+    }
+
     public String generateRequest(LetterMessage request, boolean isSigned) {
         String requestString = lettersRequestMessageBuilder.buildRequest(request);
         if (isSigned) {
@@ -39,7 +43,11 @@ public class LettersService {
         return gateway.createLetter(requestString);
     }
 
-    public ResponseEntity<String> getLetterStatus(String messageId, String instructionId) {
+    public ResponseEntity<String> getLetterStatus(String messageId, String letterId) {
         return gateway.getLetterStatus(messageId);
+    }
+
+    public ResponseEntity<String> addAttachment(String name, byte[] data, String letterId) {
+        return gateway.addAttachment(name, data, letterId);
     }
 }

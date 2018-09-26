@@ -6,4 +6,6 @@ public interface LettersGateway {
     ResponseEntity<String> createLetter(String body);
 
     ResponseEntity<String> getLetterStatus(String messageId);
+
+    ResponseEntity<String> addAttachment(String name, byte[] data, String letterId);
 }
