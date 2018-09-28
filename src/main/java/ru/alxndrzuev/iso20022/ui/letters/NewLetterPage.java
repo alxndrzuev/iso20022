@@ -128,7 +128,7 @@ public class NewLetterPage extends BasePage {
             try {
                 ResponseEntity<String> responseEntity = lettersService.sendRequest(requestTextArea.getValue());
                 if (HttpStatus.OK.equals(responseEntity.getStatusCode())) {
-                    responseTextArea.setValue(generateResult(responseEntity.getStatusCode().value(), responseEntity.getHeaders().entrySet(), responseEntity.getBody()));
+                    responseTextArea.setValue(generateResult(responseEntity.getStatusCode().value(), responseEntity.getHeaders().entrySet(), xmlFormatter.format(responseEntity.getBody())));
                     new Thread(() -> updateLettersResult(letterMessage.getMessageId(), getUI().get())).start();
                 } else {
                     responseTextArea.setValue(generateResult(responseEntity.getStatusCode().value(), responseEntity.getHeaders().entrySet(), responseEntity.getBody()));
@@ -146,9 +146,11 @@ public class NewLetterPage extends BasePage {
                 ResponseEntity<String> responseEntity = lettersService.getLetterStatus(messageId, null);
                 if (responseEntity.getStatusCode().equals(HttpStatus.OK)) {
                     ui.access(() -> {
-                        letterStatusesArea.setValue(generateResult(responseEntity.getStatusCode().value(), responseEntity.getHeaders().entrySet(), responseEntity.getBody()));
+                        letterStatusesArea.setValue(generateResult(responseEntity.getStatusCode().value(), responseEntity.getHeaders().entrySet(), xmlFormatter.format(responseEntity.getBody())));
                     });
-                    sendAttachments();
+                    if (responseEntity.getBody().contains("ACTC")) {
+                        sendAttachments();
+                    }
                 } else {
                     ui.access(() -> {
                         letterStatusesArea.setValue(generateResult(responseEntity.getStatusCode().value(), responseEntity.getHeaders().entrySet(), responseEntity.getBody()));

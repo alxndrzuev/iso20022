@@ -1,5 +1,6 @@
 package ru.alxndrzuev.iso20022.gateways.ab;
 
+import com.google.common.collect.Lists;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Base64;
@@ -93,6 +94,7 @@ public class AbTestGateway implements PaymentsGateway, StatementsGateway, Letter
     @Override
     public ResponseEntity<String> getPaymentStatus(String messageId) {
         HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_XML);
         addAuthorizationHeader(headers);
         HttpEntity<String> request = new HttpEntity<>(headers);
         return restTemplate.exchange(applicationProperties.getBaseUrl() + "/Payments/" + messageId, HttpMethod.GET, request, String.class);
@@ -102,6 +104,7 @@ public class AbTestGateway implements PaymentsGateway, StatementsGateway, Letter
     public ResponseEntity<String> createLetter(String body) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_XML);
+        headers.setAccept(Lists.newArrayList(MediaType.APPLICATION_XML));
         addAuthorizationHeader(headers);
         HttpEntity<String> request = new HttpEntity<>(body, headers);
         return restTemplate.exchange(applicationProperties.getBaseUrl() + "/Letters", HttpMethod.POST, request, String.class);
@@ -110,6 +113,8 @@ public class AbTestGateway implements PaymentsGateway, StatementsGateway, Letter
     @Override
     public ResponseEntity<String> getLetterStatus(String messageId) {
         HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_XML);
+        headers.setAccept(Lists.newArrayList(MediaType.APPLICATION_XML));
         addAuthorizationHeader(headers);
         HttpEntity<String> request = new HttpEntity<>(headers);
         return restTemplate.exchange(applicationProperties.getBaseUrl() + "/Letters/" + messageId, HttpMethod.GET, request, String.class);
