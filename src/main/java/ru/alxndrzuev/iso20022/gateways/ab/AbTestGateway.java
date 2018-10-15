@@ -134,7 +134,6 @@ public class AbTestGateway implements PaymentsGateway, StatementsGateway, Letter
         });
         HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<>(bodyMap, headers);
 
-        log.info(request.toString());
         return restTemplate.exchange(applicationProperties.getBaseUrl() + "/Letters/OutLetters/Files/" + letterId, HttpMethod.POST, request, String.class);
     }
 

@@ -28,7 +28,6 @@ public class LettersService {
 
     @PostConstruct
     public void init() {
-        log.info(addAttachment("test", "test".getBytes(), "20d-4111-9dec-667d53df1403_1").toString());
     }
 
     public String generateRequest(LetterMessage request, boolean isSigned) {

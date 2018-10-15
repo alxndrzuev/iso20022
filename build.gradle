@@ -38,7 +38,6 @@ dependencyManagement {
 dependencies {
     compile group: 'org.springframework.boot', name: 'spring-boot-starter-web'
     compile group: 'org.springframework.boot', name: 'spring-boot-starter-actuator'
-    compile group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign'
     compile group: 'com.vaadin', name: 'vaadin-spring-boot-starter', version: "${vaadinVersion}"
 
     compile group: 'javax.validation', name: 'validation-api', version: '2.0.1.Final'
@@ -52,6 +51,8 @@ dependencies {
     compile group: 'org.apache.santuario', name: 'xmlsec', version: '1.5.8'
     compile group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.6'
     compile group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-yaml', version: '2.9.2'
+    compile group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: '1.60'
+    compile group: 'org.bouncycastle', name: 'bcpkix-jdk15on', version: '1.60'
 
     //Согласно ЖТЯИ.00091-01 33 01. Руководство программиста.pdf
     //Библиотека JCPxml.jar должна находиться вместе с библиотекой xmlsec.jar
