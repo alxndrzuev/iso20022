@@ -76,10 +76,12 @@ public abstract class BasePage extends HorizontalLayout {
         menu.setSpacing(false);
         menu.setMargin(false);
         menu.setPadding(false);
-        menu.add(buildMenuButton("New statement", "statement/new"));
-        menu.add(buildMenuButton("Statement status", "statement/status"));
-        menu.add(buildMenuButton("New payment", "payment/new"));
-        menu.add(buildMenuButton("Payment status", "payment/status"));
+        menu.add(buildMenuButton("New statement", "statements/new"));
+        menu.add(buildMenuButton("Statements statuses", "statements/status"));
+        menu.add(buildMenuButton("New payment", "payments/new"));
+        menu.add(buildMenuButton("Payments statuses", "payments/status"));
+        menu.add(buildMenuButton("New letter", "letters/new"));
+        menu.add(buildMenuButton("Letters statuses", "letters/status"));
         menu.add(buildMenuButton("Settings", "settings"));
         return menu;
     }

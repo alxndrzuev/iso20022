@@ -16,17 +16,17 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import ru.alxndrzuev.iso20022.documents.payments.PaymentsGateway;
+import ru.alxndrzuev.iso20022.documents.payments.PaymentsService;
 import ru.alxndrzuev.iso20022.ui.BasePage;
 import ru.alxndrzuev.iso20022.utils.XmlFormatter;
 
-@Route("payment/status")
+@Route("payments/status")
 @Slf4j
 @Push
 public class PaymentStatusPage extends BasePage {
 
     @Autowired
-    private PaymentsGateway paymentsGateway;
+    private PaymentsService paymentsService;
 
     @Autowired
     private XmlFormatter xmlFormatter;
@@ -80,7 +80,7 @@ public class PaymentStatusPage extends BasePage {
     private void updatePaymentsResult(String messageId, UI ui) {
         for (int i = 0; i < PAYMENT_STATUS_UPDATE_RETRY_COUNT; i++) {
             try {
-                ResponseEntity<String> responseEntity = paymentsGateway.getPaymentStatus(messageId);
+                ResponseEntity<String> responseEntity = paymentsService.getPaymentStatus(messageId, null);
                 if (responseEntity.getStatusCode().equals(HttpStatus.OK)) {
                     ui.access(() -> {
                         paymentStatusesArea.setValue(generateResult(responseEntity.getStatusCode().value(), responseEntity.getHeaders().entrySet(), xmlFormatter.format(responseEntity.getBody())));
