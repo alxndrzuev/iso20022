@@ -8,7 +8,7 @@ import ru.alxndrzuev.iso20022.documents.letters.LettersGateway;
 import javax.naming.OperationNotSupportedException;
 
 @Slf4j
-public class DefaultlettersGateway implements LettersGateway {
+public class DefaultLettersGateway implements LettersGateway {
 
     @Override
     @SneakyThrows
