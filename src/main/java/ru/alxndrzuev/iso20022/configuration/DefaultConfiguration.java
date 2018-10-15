@@ -10,7 +10,7 @@ import ru.alxndrzuev.iso20022.gateways.DefaultLettersGateway;
 import ru.alxndrzuev.iso20022.gateways.DefaultPaymentsGateway;
 import ru.alxndrzuev.iso20022.gateways.DefaultStatementsGateway;
 
-@Configuration
+//@Configuration
 public class DefaultConfiguration {
 
     @Bean

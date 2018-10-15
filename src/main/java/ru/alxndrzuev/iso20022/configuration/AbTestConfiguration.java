@@ -6,7 +6,6 @@ import org.springframework.context.annotation.Configuration;
 import ru.alxndrzuev.iso20022.gateways.ab.AbTestGateway;
 
 @Configuration
-@ConditionalOnProperty(prefix = "", name = "dialect", havingValue = "ALFA_BANK")
 public class AbTestConfiguration {
 
     @Bean
