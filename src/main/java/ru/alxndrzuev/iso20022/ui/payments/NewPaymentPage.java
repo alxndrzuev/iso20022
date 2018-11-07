@@ -54,7 +54,6 @@ public class NewPaymentPage extends BasePage {
 
         messageIdTextField = new TextField();
         messageIdTextField.setValue(UUID.randomUUID().toString().substring(10));
-        messageIdTextField.setReadOnly(true);
         messageIdTextField.setSizeFull();
         agentNameTextField = new TextField();
         agentNameTextField.setSizeFull();

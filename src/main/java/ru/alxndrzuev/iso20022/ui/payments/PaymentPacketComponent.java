@@ -43,7 +43,6 @@ public class PaymentPacketComponent extends VerticalLayout {
 
         packetIdTextField = new TextField();
         packetIdTextField.setValue(messageId);
-        packetIdTextField.setReadOnly(true);
         packetIdTextField.setSizeFull();
         debtorCountryTextField = new TextField();
         debtorCountryTextField.setValue("RU");

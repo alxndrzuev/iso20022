@@ -47,7 +47,6 @@ public class PaymentInstructionComponent extends Div {
         getStyle().set("padding", "2px");
 
         instructionIdTextField = new TextField();
-        instructionIdTextField.setReadOnly(true);
         instructionIdTextField.setSizeFull();
         instructionIdTextField.setValue(messageId + "_" + String.valueOf(instructionId));
         Label label = new Label("Instruction id");
